@@ -1,0 +1,13 @@
+.connection-indicator {
+    height: 40px;
+    width: 40px;
+    border-radius: 90px;
+
+    &.active {
+        background: green;
+    }
+
+    &.inactive {
+        background: red;
+    }
+}
