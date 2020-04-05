@@ -1,13 +1,12 @@
 import React from 'react';
-
 import './App.scss';
-import Start from './components/Start';
+
+import GameController from './components/GameController';
 
 function App() {
   return (
-    <div className="App">
-        <Start></Start>
-        
+    <div className="app">
+        <GameController></GameController>        
     </div>
   );
 }

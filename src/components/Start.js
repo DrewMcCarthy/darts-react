@@ -3,9 +3,8 @@ import './Start.scss';
 import dartMap from "../libs/game-rules/dartMap";
 
 export default class Start extends Component {
-    constructor() {
-        super();
-        var myCharacteristic;
+    constructor(props) {
+        super(props);
         this.state = {
             boardConnected: false,
             dartsThrown: []
@@ -15,10 +14,14 @@ export default class Start extends Component {
         this.addDart = this.addDart.bind(this);
     }
 
+    componentWillMount() {
+        this.onStartButtonClick();
+    }
+
     dartToString(dart) {
-        if ( dart.multiplier == 1 ) return "Single " + dart.mark;
-        if ( dart.multiplier == 2 ) return "Double " + dart.mark;
-        if ( dart.multiplier == 3 ) return "Triple " + dart.mark;
+        if ( dart.multiplier === 1 ) return "Single " + dart.mark;
+        if ( dart.multiplier === 2 ) return "Double " + dart.mark;
+        if ( dart.multiplier === 3 ) return "Triple " + dart.mark;
     }
 
     addDart(dart) {
@@ -87,21 +90,26 @@ export default class Start extends Component {
         console.log("dartMap: " + dartMap(boardCoords).mark + " " + dartMap(boardCoords).multiplier);
 
         this.addDart(dartMap(boardCoords));
+        
+        let dart = dartMap(boardCoords);
+        let playerAction = {
+            player: { name: "Drew", isActive: true, score: 88 },
+            type: "throwDart",
+            action: {dart: dart}
+        }
+        console.log("playerACtion: " + JSON.stringify(playerAction));
+        this.props.handlePlayerAction(playerAction);
     }
 
     render() {
         return (
-            <div>
-                <header>
-                    <div className={`connection-indicator ${this.state.boardConnected ? "active" : "inactive"}`}></div>
-                </header>
-                <button className="btn" onClick={() => this.onStartButtonClick()}>
-                    Connect to Dartboard
-                </button>
-
+            <div className="board-indicator">
+                <span className="header__playerName">Drew</span>
+                <div className={`connection-indicator ${this.state.boardConnected ? "active" : "inactive"}`}
+                    onClick={this.onStartButtonClick}></div>
                 <div>
-                    {this.state.dartsThrown.map(dart => {
-                        return <p>{this.dartToString(dart)}</p>
+                    {this.state.dartsThrown.map((dart, idx) => {
+                        return <p key={idx}>{this.dartToString(dart)}</p>
                     })}
                 </div>
             </div>

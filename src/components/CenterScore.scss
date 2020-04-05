@@ -1,0 +1,13 @@
+.center-score {
+    display: flex;
+    margin: auto;
+    height: 200px;
+    width: 350px;
+    border: 5px solid gold;
+
+    &__value {
+        margin: auto;
+        font-size: 80px;
+        font-weight: bold;
+    }
+}

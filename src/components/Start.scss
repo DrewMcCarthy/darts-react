@@ -1,6 +1,7 @@
 .connection-indicator {
     height: 40px;
     width: 40px;
+    margin-right: 40px;
     border-radius: 90px;
 
     &.active {
@@ -10,4 +11,11 @@
     &.inactive {
         background: red;
     }
+}
+
+.header__playerName {
+    color: white;
+    font-weight: bold;
+    font-size: 30px;
+    margin-right: 50px;
 }
