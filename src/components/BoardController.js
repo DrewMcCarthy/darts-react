@@ -10,22 +10,12 @@ export default class BoardController extends Component {
         }
 
         this.handleNotifications = this.handleNotifications.bind(this);
+        this.connectToBoard = this.connectToBoard.bind(this);
+
     }
 
-    componentWillMount() {
-        this.connectToBoard();
-    }
-
-    dartToString(dart) {
-        if ( dart.multiplier === 1 ) return "Single " + dart.mark;
-        if ( dart.multiplier === 2 ) return "Double " + dart.mark;
-        if ( dart.multiplier === 3 ) return "Triple " + dart.mark;
-    }
-
-    // addDart(dart) {
-    //     var newDartsThrown = this.state.dartsThrown;
-    //     newDartsThrown.push(dart);
-    //     this.setState({ dartsThrown: newDartsThrown });
+    // componentDidMount() {
+    //     this.connectToBoard();
     // }
 
     connectToBoard() {
@@ -95,7 +85,7 @@ export default class BoardController extends Component {
             type: "throwDart",
             action: {dart: dart}
         }
-        console.log("playerACtion: " + JSON.stringify(playerAction));
+        console.log("playerAction: " + JSON.stringify(playerAction));
         this.props.handlePlayerAction(playerAction);
     }
 
@@ -103,7 +93,7 @@ export default class BoardController extends Component {
         return (
             <div className="board-indicator">
                 <span className="header__playerName">Drew</span>
-                <div className={`connection-indicator ${this.state.boardConnected ? "active" : "inactive"}`}
+                <div className={`connection-indicator ${this.state.boardConnected ? "active" : "inactive animated heartBeat infinite"}`}
                     onClick={this.connectToBoard}></div>
                 {/* <div>
                     {this.state.dartsThrown.map((dart, idx) => {

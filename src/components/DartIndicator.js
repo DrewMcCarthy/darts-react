@@ -17,7 +17,7 @@ export default class DartIndicator extends Component {
         let dartIndicator;
 
         try {
-            dart = this.props.roundDarts[dartSeq];
+            dart = this.props.turnDarts[dartSeq];
         } 
         catch {
             dart = {};
@@ -26,7 +26,7 @@ export default class DartIndicator extends Component {
         if (dart === undefined) {
             dartIndicator = (
                 <img
-                    src={process.env.PUBLIC_URL + "/images/dart_ind_net.png"}
+                    src={process.env.PUBLIC_URL + "/images/dart_indicator_sm.png"}
                     className="dart-indicator__img"
                     alt="Dart"
                 />

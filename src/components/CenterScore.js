@@ -5,8 +5,11 @@ export default class CenterScore extends Component {
 
     render() {
         return (
-            <div className="center-score">
-                <div className="center-score__value">{this.props.score}</div>
+            <div>
+                <div className="center-score__name">{this.props.name}</div>
+                <div className="center-score">
+                    <div className="center-score__value">{this.props.score}</div>
+                </div>
             </div>
         );
     }

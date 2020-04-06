@@ -1,8 +1,7 @@
-.center-score {
+.player-score {
     display: flex;
-    margin: 5% auto auto auto;
-    height: 250px;
-    width: 600px;
+    height: 100px;
+    width: 200px;
     background: rgba($color: #444343, $alpha: .7);
     border: 5px solid #F5E86B;
     border-radius: 30px;
@@ -10,12 +9,12 @@
     &__value {
         color: #F5E86B;
         margin: auto;
-        font-size: 10rem;
+        font-size: 5rem;
         font-weight: bold;
     }
 }
 
-.center-score__name {
-    font-size: 8rem;
+.player-score__name {
+    font-size: 4rem;
     text-align: center;
 }

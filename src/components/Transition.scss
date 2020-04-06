@@ -1,0 +1,12 @@
+.transition {
+    position: absolute;
+    left: 15%;
+    z-index: 99;
+    width: 70vw;
+    height: 20vh;
+    background: rgba($color: #444343, $alpha: 1.0);
+    border: 5px solid #F5E86B;
+    border-radius: 30px;
+    text-align: center;
+    font-size: 8rem;
+}

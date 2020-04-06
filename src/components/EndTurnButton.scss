@@ -1,0 +1,14 @@
+.end-turn-button {
+    font-family: 'Jupiter', Arial, Helvetica, sans-serif;
+    font-size: 3rem;
+    font-weight: bold;
+    color: white;
+    border: 2px solid #d11c1c;
+    background: rgba($color: #d11c1c, $alpha: 0.5);
+    width: 200px;
+    height: 100px;
+
+    &:hover {
+        background: rgba($color: #d11c1c, $alpha: 1.0);
+    }
+}
