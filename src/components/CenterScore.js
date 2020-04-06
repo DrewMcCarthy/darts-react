@@ -2,9 +2,6 @@ import React, { Component } from 'react'
 import './CenterScore.scss'
 
 export default class CenterScore extends Component {
-    constructor(props) {
-        super(props);
-    }
 
     render() {
         return (

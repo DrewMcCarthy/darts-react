@@ -1,21 +1,19 @@
 import React, { Component } from 'react';
-import './Start.scss';
+import "./BoardController.scss";
 import dartMap from "../libs/game-rules/dartMap";
 
-export default class Start extends Component {
+export default class BoardController extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            boardConnected: false,
-            dartsThrown: []
+            boardConnected: false
         }
 
         this.handleNotifications = this.handleNotifications.bind(this);
-        this.addDart = this.addDart.bind(this);
     }
 
     componentWillMount() {
-        this.onStartButtonClick();
+        this.connectToBoard();
     }
 
     dartToString(dart) {
@@ -24,13 +22,13 @@ export default class Start extends Component {
         if ( dart.multiplier === 3 ) return "Triple " + dart.mark;
     }
 
-    addDart(dart) {
-        var newDartsThrown = this.state.dartsThrown;
-        newDartsThrown.push(dart);
-        this.setState({ dartsThrown: newDartsThrown });
-    }
+    // addDart(dart) {
+    //     var newDartsThrown = this.state.dartsThrown;
+    //     newDartsThrown.push(dart);
+    //     this.setState({ dartsThrown: newDartsThrown });
+    // }
 
-    onStartButtonClick() {
+    connectToBoard() {
         let serviceUuid = parseInt("0xFFE0");
         let characteristicUuid = parseInt("0xFFE1");
 
@@ -63,7 +61,7 @@ export default class Start extends Component {
             });
     }
 
-    onStopButtonClick() {
+    disconnectFromBoard() {
         if (this.myCharacteristic) {
             this.myCharacteristic
                 .stopNotifications()
@@ -89,7 +87,7 @@ export default class Start extends Component {
         console.log("boardCoords: " + boardCoords);
         console.log("dartMap: " + dartMap(boardCoords).mark + " " + dartMap(boardCoords).multiplier);
 
-        this.addDart(dartMap(boardCoords));
+        // this.addDart(dartMap(boardCoords));
         
         let dart = dartMap(boardCoords);
         let playerAction = {
@@ -106,12 +104,12 @@ export default class Start extends Component {
             <div className="board-indicator">
                 <span className="header__playerName">Drew</span>
                 <div className={`connection-indicator ${this.state.boardConnected ? "active" : "inactive"}`}
-                    onClick={this.onStartButtonClick}></div>
-                <div>
+                    onClick={this.connectToBoard}></div>
+                {/* <div>
                     {this.state.dartsThrown.map((dart, idx) => {
                         return <p key={idx}>{this.dartToString(dart)}</p>
                     })}
-                </div>
+                </div> */}
             </div>
         );
     }
