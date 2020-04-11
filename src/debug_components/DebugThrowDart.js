@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import './DebugThrowDart.scss';
 import dartMap from "../libs/game-rules/dartMap";
 
 export default class DebugThrowDart extends Component {
@@ -26,7 +27,7 @@ export default class DebugThrowDart extends Component {
     render() {
         return (
             <div>
-                <button onClick={this.handleClick}>
+                <button onClick={this.handleClick} className="btn-debug">
                     {this.props.label}
                 </button>
             </div>

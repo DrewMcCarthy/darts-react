@@ -1,0 +1,29 @@
+.menu {
+    display: flex;
+    height: 100%;
+}
+
+.btn-container {
+    height: 50%;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu__btn {
+    width: 100%;
+    min-width: 600px;
+    margin: 2rem 0;
+    padding: 1rem 2rem;
+    background: rgba($color: #444343, $alpha: .7);
+    border: 2px solid #F5E86B;
+    border-radius: 60px;
+    color: #F5E86B;
+    margin: auto;
+    font-size: 5rem;
+
+    &:hover,
+    &:active {
+        background: darken(rgba($color: #444343, $alpha: .7), $amount: 10)
+    }
+}

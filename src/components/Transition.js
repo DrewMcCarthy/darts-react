@@ -5,11 +5,9 @@ export default class Transition extends Component {
 
     render() {
         return (
-            <div>
-                <div className="transition animated slideInDown">
-                    {this.props.label}
-                </div>
+            <div className="transition animated slideInDown">
+                {this.props.label}
             </div>
-        )
+        );
     }
 }

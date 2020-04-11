@@ -9,8 +9,8 @@ import Transition from './Transition';
 import DebugThrowDart from '../debug_components/DebugThrowDart';
 
 export default class GameController extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.handlePlayerAction = this.handlePlayerAction.bind(this);
         this.addRoundDart = this.addRoundDart.bind(this);
         this.handleEndTurn = this.handleEndTurn.bind(this);
@@ -19,6 +19,7 @@ export default class GameController extends Component {
 
         this.state = {
             clientInfo: { id: 1, name: "Drew" },
+            gameOptions: this.props.gameOptions,
             players: [
                 { id: 1, name: "Drew", score: 501 },
                 { id: 2, name: "Player 2", score: 501 }
@@ -34,7 +35,7 @@ export default class GameController extends Component {
 
     componentDidMount() {
         this.dartSound = new UIfx(process.env.PUBLIC_URL + "/audio/dartSound.mp3");
-        var newTempScore = this.state.players[0].score;
+        var newTempScore = this.state.gameOptions.startScore;
         this.setState({ tempScore: newTempScore, activePlayer: { index: 0, id: this.state.players[0].id } });
     }
 
@@ -75,7 +76,7 @@ export default class GameController extends Component {
         if (playerAction.type === "throwDart") {
             this.handleThrowDart(playerAction.action.dart);
             // Moved handleEndTurn to a callback inside setState inside handleThrowDart
-            // because the async setState wasn't giving me the value I needed
+            // because the async setState wasn't updating state in time to get new values
             // this.handleEndTurn(false);
         }
     }
@@ -116,7 +117,7 @@ export default class GameController extends Component {
                 tempScore: this.state.players[this.state.activePlayer.index].score,
                 turnDarts: []
             });
-        }, 3000);
+        }, 5000);
     }
 
     handleWinGame() {
@@ -156,7 +157,7 @@ export default class GameController extends Component {
 
     render() {
         return (
-            <div id="game-controller">
+            <div className="game-controller">
                 <div className="header">
                     <DebugThrowDart
                         label="Single 10"
