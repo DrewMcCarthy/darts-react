@@ -92,11 +92,13 @@ export default class GameController extends Component {
         if (newTempScore < 0) {
             this.handleBust();
         }
+        // Check for win condition
         else if (newTempScore === 0) {
             this.setState({ tempScore: newTempScore }, () => {
                 this.handleWinGame();
             });
         }
+        // End turn
         else {
             this.setState({ tempScore: newTempScore }, () => {
                 this.handleEndTurn(false);
@@ -117,7 +119,7 @@ export default class GameController extends Component {
                 tempScore: this.state.players[this.state.activePlayer.index].score,
                 turnDarts: []
             });
-        }, 5000);
+        }, 3000);
     }
 
     handleWinGame() {

@@ -7,15 +7,22 @@ export default class Menu extends Component {
         this.handleGameType = this.handleGameType.bind(this);
         this.handleStartScore = this.handleStartScore.bind(this);
         this.handleInOut = this.handleInOut.bind(this);
-        this.handleBack = this.handleBack.bind(this);
+        this.handleReturn = this.handleReturn.bind(this);
         this.state = {
+            availableOptions: null,
+            selectedOptions: null,
             type: null,
+            variation: null,
             startScore: null,
             inOut: null
         }
     }
 
-    handleBack(event) {
+    componentDidMount() {
+        this.getGameOptions();
+    }
+
+    handleReturn(event) {
         this.setState({ [event.target.id]: null });
     }
 
@@ -33,13 +40,25 @@ export default class Menu extends Component {
         let inOut = event.target.value;
         this.setState({ inOut }, () => {
             // Use in callback after last option setting to lift state to parent
-            this.props.handleGameOptions(this.state);
+            this.props.handleOptionSelection(this.state);
         });
+    }
+
+    async getGameOptions() {
+        let response = await fetch('https://localhost:5001/darts/options', {
+        method: "get",
+        headers: { 
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + this.props.JwtToken 
+        }
+        });
+        let availableOptions = await response.json();
+        this.setState({ availableOptions });
     }
 
     render() {
         let buttons;
-
+        // Game type buttons
         if (this.state.type === null) {
             buttons = (
                 <div className="btn-container">
@@ -49,6 +68,7 @@ export default class Menu extends Component {
                 </div>
             );
         }
+        // 01 variations
         else if (this.state.startScore === null) {
             buttons = (
                 <div className="btn-container">
@@ -58,12 +78,13 @@ export default class Menu extends Component {
                     <button value="501" className="menu__btn" onClick={e => this.handleStartScore(e)}>
                         501
                     </button>
-                    <button id="type" className="menu__btn" onClick={e => this.handleBack(e)}>
+                    <button id="type" className="menu__btn" onClick={e => this.handleReturn(e)}>
                         Return
                     </button>
                 </div>
             );
         }
+        // 01 options
         else if (this.state.inOut === null) {
             buttons = (
                 <div className="btn-container">
@@ -73,7 +94,7 @@ export default class Menu extends Component {
                     <button value="openDouble" className="menu__btn" onClick={e => this.handleInOut(e)}>
                         Open In/Double Out
                     </button>
-                    <button id="startScore" className="menu__btn" onClick={e => this.handleBack(e)}>
+                    <button id="startScore" className="menu__btn" onClick={e => this.handleReturn(e)}>
                         Return
                     </button>
                 </div>

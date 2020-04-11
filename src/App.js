@@ -13,27 +13,28 @@ export default class App extends Component {
   constructor() {
     super();
     this.setUser = this.setUser.bind(this);
-    this.handleGameOptions = this.handleGameOptions.bind(this);
+    this.handleOptionSelection = this.handleOptionSelection.bind(this);
     this.state = {
       user: null,
-      gameOptions: null
+      selectedOptions: null
     }
   }
 
   componentDidMount() {
-    let user = localStorage.getItem('user');
+    let user = JSON.parse(localStorage.getItem('user'));
     if (user !== null) {
       this.setState({ user });
     }
   }
+
 
   setUser(user) {
     this.setState({ user });
     localStorage.setItem('user', JSON.stringify(user));
   }
 
-  handleGameOptions(gameOptions) {
-    this.setState( {gameOptions });
+  handleOptionSelection(selectedOptions) {
+    this.setState({ selectedOptions });
   }
 
   render() {
@@ -45,17 +46,17 @@ export default class App extends Component {
         </div>
       );
     }
-    else if (this.state.gameOptions === null) {
+    else if (this.state.selectedOptions === null) {
       return (
-        <div className="app">
-            <Menu handleGameOptions={this.handleGameOptions}></Menu>
-        </div>
+          <div className="app">
+              <Menu JwtToken={this.state.user.JwtToken} handleOptionSelection={this.handleOptionSelection}></Menu>
+          </div>
       );
     }
     else {
       return (
           <div className="app">
-              <GameController gameOptions={this.state.gameOptions}></GameController>
+              <GameController selectedOptions={this.state.selectedOptions}></GameController>
           </div>
       );
     }
