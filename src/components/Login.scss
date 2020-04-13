@@ -1,0 +1,40 @@
+.login-container {
+    display: flex;
+    height: 100%;
+}
+
+.login-controls {
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+
+    > * {
+        margin: 2rem auto;
+    }
+}
+
+.login-input {
+    text-align: center;
+    height: 50px;
+    width: 300px;
+    background: rgba($color: #444343, $alpha: .7);
+    border: 1px solid #F5E86B;
+    border-radius: 15px;
+    color: #F5E86B;
+    font-size: 2rem;
+
+    &::placeholder {
+        color: rgba(#F5E86B, .5);
+    }
+}
+
+.login-button {
+    height: 50px;
+    width: 300px;
+    background: rgba($color: #444343, $alpha: .7);
+    border: 1px solid #F5E86B;
+    border-radius: 30px;
+    color: #F5E86B;
+    font-size: 2rem;
+    margin: 1rem auto;
+}

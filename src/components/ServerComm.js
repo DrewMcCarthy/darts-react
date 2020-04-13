@@ -30,6 +30,7 @@ export default class ServerComm extends Component {
                 let text = `${username}: ${receivedMessage}`;
                 let messages = this.state.messages.concat([text]);
                 this.setState({ messages });
+                console.log("messages: " + messages);
             });
         });
     }
@@ -55,7 +56,8 @@ export default class ServerComm extends Component {
     render() {
         return (
             <div>
-                <div className="servercomm">
+                {null}
+                {/* <div className="servercomm">
                     <input name="username" placeholder="Username" onChange={e => this.onChangeUser(e)}></input>
                     <input name="message" onChange={e => this.onChangeMessage(e)}></input>
                     <button onClick={this.sendMessage}>Send</button>
@@ -63,7 +65,7 @@ export default class ServerComm extends Component {
                     {this.state.messages.map((m, idx) => (
                         <p key={idx}>{ m }</p>
                     ))}
-                </div>
+                </div> */}
             </div>
         );
     }

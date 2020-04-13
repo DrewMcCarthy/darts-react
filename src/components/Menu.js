@@ -1,21 +1,24 @@
 import React, { Component } from 'react'
 import './Menu.scss';
+import Lobby from './Lobby';
 
 export default class Menu extends Component {
     constructor(props) {
         super(props);
+        this.handleGameHost = this.handleGameHost.bind(this);
         this.handleGameType = this.handleGameType.bind(this);
-        this.handleStartScore = this.handleStartScore.bind(this);
+        this.handleGameVariation = this.handleGameVariation.bind(this);
         this.handleInOut = this.handleInOut.bind(this);
         this.handleReturn = this.handleReturn.bind(this);
         this.state = {
             availableOptions: null,
-            selectedOptions: null,
-            type: null,
-            variation: null,
-            startScore: null,
-            inOut: null
-        }
+            selectedOptions: {
+                host: null,
+                type: null,
+                variation: null,
+                inOut: null
+            }
+        };
     }
 
     componentDidMount() {
@@ -23,24 +26,36 @@ export default class Menu extends Component {
     }
 
     handleReturn(event) {
-        this.setState({ [event.target.id]: null });
+        let selectedOptions = { ...this.state.selectedOptions };
+        selectedOptions[event.target.id] = null;
+        this.setState({ selectedOptions });
     }
 
-    handleGameType(event) {
-        let type = event.target.value;
-        this.setState({ type });
+    handleGameHost(event) {
+        let selectedOptions = {...this.state.selectedOptions}
+        selectedOptions.host = event.target.value;
+        this.setState({ selectedOptions });
     }
 
-    handleStartScore(event) {
-        let startScore = event.target.value;
-        this.setState({ startScore });
+    handleGameType(type) {
+        let selectedOptions = {...this.state.selectedOptions}
+        selectedOptions.type = type;
+        this.setState({ selectedOptions });
+    }
+
+    handleGameVariation(variation) {
+        let selectedOptions = { ...this.state.selectedOptions };
+        selectedOptions.variation = variation;
+        this.setState({ selectedOptions });
     }
 
     handleInOut(event) {
         let inOut = event.target.value;
-        this.setState({ inOut }, () => {
+        let selectedOptions = { ...this.state.selectedOptions };
+        selectedOptions.inOut = inOut;
+        this.setState({ selectedOptions }, () => {
             // Use in callback after last option setting to lift state to parent
-            this.props.handleOptionSelection(this.state);
+            this.props.handleSelectOptions(this.state.selectedOptions);
         });
     }
 
@@ -49,43 +64,83 @@ export default class Menu extends Component {
         method: "get",
         headers: { 
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + this.props.JwtToken 
+            "Authorization": "Bearer " + this.props.user.JwtToken 
         }
         });
         let availableOptions = await response.json();
         this.setState({ availableOptions });
     }
 
+    gameHostButtons() {
+        return (
+            <div className="btn-container">
+                <button className="menu__btn" value="Lobby" onClick={e => this.handleGameHost(e)}>
+                    Join Online
+                </button>
+                <button className="menu__btn" value="NewOnline" onClick={e => this.handleGameHost(e)}>
+                    Host Online
+                </button>
+                <button className="menu__btn" value="Local" onClick={e => this.handleGameHost(e)}>
+                    Local Play
+                </button>
+            </div>
+        );
+    }
+
+    gameTypeButtons() {
+        var buttonArray = [];
+        var typeButtons = this.state.availableOptions.GameTypes.map(gt => (
+            <button key={gt.Id} className="menu__btn" onClick={() => this.handleGameType(gt)}>
+                {`${gt.Name} Games`}
+            </button>
+        ));
+        var returnButton = 
+            <button key="999" id="host" className="menu__btn" onClick={e => this.handleReturn(e)}>
+                Return
+            </button>
+        buttonArray.push(typeButtons, returnButton);
+        return buttonArray;
+    }
+
+    gameVariationButtons() { 
+        var buttonArray = [];
+        var variationButtons = this.state.availableOptions.GameVariations
+            .filter((gv) => { return gv.GameTypeId === this.state.selectedOptions.type.Id })
+            .map(gv => (
+                <button key={gv.Id} className="menu__btn" onClick={() => this.handleGameVariation(gv)}>
+                    {gv.Name}
+                </button>
+            ));
+        var returnButton = 
+            <button key="999" id="type" className="menu__btn" onClick={e => this.handleReturn(e)}>
+                Return
+            </button>
+
+        buttonArray.push(variationButtons, returnButton);
+        return buttonArray;
+    }
+
     render() {
         let buttons;
-        // Game type buttons
-        if (this.state.type === null) {
-            buttons = (
-                <div className="btn-container">
-                    <button value="zeroOne" className="menu__btn" onClick={e => this.handleGameType(e)}>
-                        01 Games
-                    </button>
-                </div>
+        // Game host buttons
+        if (this.state.selectedOptions.host === null) {
+            buttons = this.gameHostButtons();
+        }
+        else if (this.state.selectedOptions.host === "Lobby") {
+            return (
+                <Lobby user={this.props.user}></Lobby>
             );
         }
-        // 01 variations
-        else if (this.state.startScore === null) {
-            buttons = (
-                <div className="btn-container">
-                    <button value="301" className="menu__btn" onClick={e => this.handleStartScore(e)}>
-                        301
-                    </button>
-                    <button value="501" className="menu__btn" onClick={e => this.handleStartScore(e)}>
-                        501
-                    </button>
-                    <button id="type" className="menu__btn" onClick={e => this.handleReturn(e)}>
-                        Return
-                    </button>
-                </div>
-            );
+        // Game type buttons
+        else if (this.state.selectedOptions.type === null && this.state.availableOptions !== null) {
+            buttons = this.gameTypeButtons();
+        }
+        // Game variations
+        else if (this.state.selectedOptions.variation === null && this.state.availableOptions !== null) {
+            buttons = this.gameVariationButtons();
         }
         // 01 options
-        else if (this.state.inOut === null) {
+        else if (this.state.selectedOptions.inOut === null && this.state.availableOptions !== null) {
             buttons = (
                 <div className="btn-container">
                     <button value="openOpen" className="menu__btn" onClick={e => this.handleInOut(e)}>
@@ -94,7 +149,7 @@ export default class Menu extends Component {
                     <button value="openDouble" className="menu__btn" onClick={e => this.handleInOut(e)}>
                         Open In/Double Out
                     </button>
-                    <button id="startScore" className="menu__btn" onClick={e => this.handleReturn(e)}>
+                    <button id="variation" className="menu__btn" onClick={e => this.handleReturn(e)}>
                         Return
                     </button>
                 </div>
@@ -103,7 +158,9 @@ export default class Menu extends Component {
 
         return (
             <div className="menu">
-                {buttons}
+                <div className="btn-container">
+                    {buttons}
+                </div>
             </div>
         );
     }

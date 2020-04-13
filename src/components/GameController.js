@@ -7,6 +7,7 @@ import EndTurnButton from './EndTurnButton';
 import PlayerScore from './PlayerScore';
 import Transition from './Transition';
 import DebugThrowDart from '../debug_components/DebugThrowDart';
+import { ServerComm } from '../libs/signalR/serverComm';
 
 export default class GameController extends Component {
     constructor(props) {
@@ -17,9 +18,11 @@ export default class GameController extends Component {
         this.changeActivePlayer = this.changeActivePlayer.bind(this);
         this.handleBust = this.handleBust.bind(this);
 
+        this.handleServerMessage = this.handleServerMessage.bind(this);
+        this.serverComm = new ServerComm(this.handleServerMessage);
+
         this.state = {
-            clientInfo: { id: 1, name: "Drew" },
-            gameOptions: this.props.gameOptions,
+            selectedOptions: this.props.selectedOptions,
             players: [
                 { id: 1, name: "Drew", score: 501 },
                 { id: 2, name: "Player 2", score: 501 }
@@ -34,9 +37,42 @@ export default class GameController extends Component {
     }
 
     componentDidMount() {
+        // Load sounds
         this.dartSound = new UIfx(process.env.PUBLIC_URL + "/audio/dartSound.mp3");
-        var newTempScore = this.state.gameOptions.startScore;
-        this.setState({ tempScore: newTempScore, activePlayer: { index: 0, id: this.state.players[0].id } });
+        
+        // Set board start score
+        var tempScore = this.state.selectedOptions.variation.StartScore;
+        
+        // Set players' start score
+        var players = [...this.state.players];
+        players.forEach((p) => p.score = tempScore);
+
+        this.setState({ tempScore, players, activePlayer: { index: 0, id: this.state.players[0].id } });
+        
+
+        this.sendGameToServer();
+    }
+
+    handleServerMessage(receivedMessage) {
+        console.log(receivedMessage);
+    }
+
+    async sendGameToServer() {
+        let data = {
+            "gameTypeId": this.state.selectedOptions.variation.GameTypeId,
+            "gameVariationId": this.state.selectedOptions.variation.Id,
+            "createdByUserId": this.props.user.Id,
+            "status": "Lobby"
+        };
+        await fetch("https://localhost:5001/darts/creategame", {
+            method: "post",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + this.props.user.JwtToken},
+            body: JSON.stringify(data)
+        });
+
+        this.serverComm.sendMessage(this.props.user.Username, JSON.stringify(data));
     }
 
     addRoundDart(dart) {

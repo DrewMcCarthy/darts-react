@@ -7,6 +7,10 @@ body {
   font-family: 'Jupiter', Arial, Helvetica, sans-serif;
 }
 
+*:focus {
+  outline: 0;
+}
+
 .app {
   margin: 0;
   height: 100vh;

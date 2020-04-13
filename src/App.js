@@ -4,7 +4,6 @@ import './libs/animate/animate.css';
 import GameController from "./components/GameController";
 import Login from "./components/Login";
 import Menu from "./components/Menu";
-import ServerComm from "./components/ServerComm";
 
 export default class App extends Component {
   // Check localStorage for user and setState if there
@@ -13,7 +12,7 @@ export default class App extends Component {
   constructor() {
     super();
     this.setUser = this.setUser.bind(this);
-    this.handleOptionSelection = this.handleOptionSelection.bind(this);
+    this.handleSelectOptions = this.handleSelectOptions.bind(this);
     this.state = {
       user: null,
       selectedOptions: null
@@ -32,7 +31,7 @@ export default class App extends Component {
     localStorage.setItem('user', JSON.stringify(user));
   }
 
-  handleOptionSelection(selectedOptions) {
+  handleSelectOptions(selectedOptions) {
     this.setState({ selectedOptions });
   }
 
@@ -41,21 +40,20 @@ export default class App extends Component {
       return (
         <div className="app">
             <Login setUser={this.setUser}></Login>
-            <ServerComm></ServerComm>
         </div>
       );
     }
     else if (this.state.selectedOptions === null) {
       return (
           <div className="app">
-              <Menu JwtToken={this.state.user.JwtToken} handleOptionSelection={this.handleOptionSelection}></Menu>
+              <Menu user={this.state.user} handleSelectOptions={this.handleSelectOptions}></Menu>
           </div>
       );
     }
     else {
       return (
           <div className="app">
-              <GameController selectedOptions={this.state.selectedOptions}></GameController>
+              <GameController user={this.state.user} selectedOptions={this.state.selectedOptions}></GameController>
           </div>
       );
     }

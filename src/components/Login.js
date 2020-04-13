@@ -1,13 +1,16 @@
-import React, { Component } from 'react'
+import React, { Component } from 'react';
+import './Login.scss';
 
 export default class Login extends Component {
     constructor(props) {
         super(props);
         this.authenticate = this.authenticate.bind(this);
+        this.register = this.register.bind(this);
         this.state = {
-            email: "",
-            username: "",
-            password: ""
+            email: null,
+            username: null,
+            password: null,
+            isRegistering: false
         }
     }
 
@@ -37,18 +40,47 @@ export default class Login extends Component {
         this.props.setUser(user);
     }
 
-    register() {
+    async register() {
+        if (this.state.username === null || this.state.password === null || this.state.email === null) {
+            alert("Must Fill Out All Fields");
+            return;
+        }
 
+        let response = await fetch('https://localhost:5001/darts/register', {
+            method: "post",
+            body: JSON.stringify({ email: this.state.email, username: this.state.username, password: this.state.password }),
+            headers: { "Content-Type": "application/json" }
+        });
+        let user = await response.json();
+        console.log('user: ' + JSON.stringify(user));
+        this.props.setUser(user);
     }
 
     render() {
-        return (
-            <div className="login">
-                <input name="email" placeholder="Email Address" onChange={e => this.onChangeEmail(e)}></input>
-                <input name="password" placeholder="Password" onChange={e => this.onChangePassword(e)}></input>
-                {/* <input name="username" placeholder="Username" onChange={e => this.onChangeUsername(e)}></input> */}
-                <button onClick={this.authenticate}>Login</button>
+        if (this.state.isRegistering === true) {
+            return (
+                <div className="login-container">
+                <div className="login-controls">
+                    <input className="login-input" type="email" name="email" placeholder="Email Address" onChange={e => this.onChangeEmail(e)}></input>
+                    <input className="login-input" name="username" placeholder="Username" onChange={e => this.onChangeUsername(e)}></input>
+                    <input className="login-input" type="password" name="password" placeholder="Password" onChange={e => this.onChangePassword(e)}></input>
+                    <button className="login-button" onClick={this.register}>Register</button>
+                </div>
             </div>
-        );
+            )
+        }
+        else {
+            return (
+                <div className="login-container">
+                    <div className="login-controls">
+                        <input className="login-input" type="email" name="email" placeholder="Email Address" onChange={e => this.onChangeEmail(e)}></input>
+                        <input className="login-input" type="password" name="password" placeholder="Password" onChange={e => this.onChangePassword(e)}></input>
+                        {/* <input name="username" placeholder="Username" onChange={e => this.onChangeUsername(e)}></input> */}
+                        <button className="login-button" onClick={this.authenticate}>Login</button>
+                        <button className="login-button" onClick={() => this.setState({ isRegistering: true })}>Register</button>
+                    </div>
+                </div>
+            );
+        }
     }
 }
