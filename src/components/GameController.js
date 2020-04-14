@@ -19,20 +19,21 @@ export default class GameController extends Component {
         this.handleBust = this.handleBust.bind(this);
 
         this.handleServerMessage = this.handleServerMessage.bind(this);
-        this.serverComm = new ServerComm(this.handleServerMessage);
+        this.handlePlayerJoined = this.handlePlayerJoined.bind(this);
+        this.serverComm = new ServerComm(this.handleServerMessage, undefined, this.handlePlayerJoined);
 
         this.state = {
             selectedOptions: this.props.selectedOptions,
             players: [
-                { id: 1, name: "Drew", score: 501 },
-                { id: 2, name: "Player 2", score: 501 }
+                { id: this.props.user.Id, name: this.props.user.Username, score: null }
             ],
             activePlayer: {},
             winningPlayer: {},
             turnDarts: [],
             tempScore: 0,
             transitioning: false,
-            transitionLabel: ""
+            transitionLabel: "",
+            waitingForPlayers: true
         };
     }
 
@@ -47,14 +48,21 @@ export default class GameController extends Component {
         var players = [...this.state.players];
         players.forEach((p) => p.score = tempScore);
 
-        this.setState({ tempScore, players, activePlayer: { index: 0, id: this.state.players[0].id } });
+        // this.setState({ tempScore, players, activePlayer: { index: 0, id: this.state.players[0].id } });
         
-
         this.sendGameToServer();
+    }
+
+    initPlayers() {
+
     }
 
     handleServerMessage(receivedMessage) {
         console.log(receivedMessage);
+    }
+
+    handlePlayerJoined(userId, username) {
+        console.log(`Player Joined - ID:${userId} - Name:${username}`);
     }
 
     async sendGameToServer() {
@@ -64,15 +72,17 @@ export default class GameController extends Component {
             "createdByUserId": this.props.user.Id,
             "status": "Lobby"
         };
-        await fetch("https://localhost:5001/darts/creategame", {
+        let response = await fetch("https://localhost:5001/darts/creategame", {
             method: "post",
             headers: { 
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + this.props.user.JwtToken},
             body: JSON.stringify(data)
         });
-
-        this.serverComm.sendMessage(this.props.user.Username, JSON.stringify(data));
+        let gameId = await response.json();
+        console.log("gameId: " + gameId);
+        this.serverComm.addGameToLobby(JSON.stringify(data));
+        this.serverComm.joinGame(gameId.toString(), this.props.user.Id.toString());
     }
 
     addRoundDart(dart) {
@@ -194,58 +204,65 @@ export default class GameController extends Component {
 
 
     render() {
-        return (
-            <div className="game-controller">
-                <div className="header">
-                    <DebugThrowDart
-                        label="Single 10"
-                        value="35-45"
-                        handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></DebugThrowDart>
-                    <DebugThrowDart
-                        label="Triple 20"
-                        value="39-28"
-                        handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></DebugThrowDart>
-                    <DebugThrowDart
-                        label="Triple 7"
-                        value="39-25"
-                        handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></DebugThrowDart>
-                    <BoardController
-                        handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></BoardController>
+        if (this.state.waitingForPlayers === true) {
+            return (
+                <div className="game-controller">WAITING FOR PLAYER TO JOIN</div>
+            );
+        }
+        else {
+            return (
+                <div className="game-controller">
+                    <div className="header">
+                        <DebugThrowDart
+                            label="Single 10"
+                            value="35-45"
+                            handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></DebugThrowDart>
+                        <DebugThrowDart
+                            label="Triple 20"
+                            value="39-28"
+                            handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></DebugThrowDart>
+                        <DebugThrowDart
+                            label="Triple 7"
+                            value="39-25"
+                            handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></DebugThrowDart>
+                        <BoardController
+                            handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></BoardController>
+                    </div>
+
+                    <div className="main-area">
+                        {this.state.transitioning && <Transition label={this.state.transitionLabel}></Transition>}
+
+                        {this.state.players[this.state.activePlayer.index] && (
+                            <CenterScore
+                                name={this.state.players[this.state.activePlayer.index].name}
+                                score={this.state.tempScore}></CenterScore>
+                        )}
+                    </div>
+
+                    <div className="user-area">
+                        {this.state.players && (
+                            <PlayerScore
+                                name={this.state.players[0].name}
+                                score={this.state.players[0].score}></PlayerScore>
+                        )}
+
+                        <EndTurnButton
+                            handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></EndTurnButton>
+
+                        {this.state.players && (
+                            <PlayerScore
+                                name={this.state.players[1].name}
+                                score={this.state.players[1].score}></PlayerScore>
+                        )}
+                    </div>
+
+                    <div className="footer">
+                        <DartIndicator dartSeq="0" turnDarts={this.state.turnDarts}></DartIndicator>
+                        <DartIndicator dartSeq="1" turnDarts={this.state.turnDarts}></DartIndicator>
+                        <DartIndicator dartSeq="2" turnDarts={this.state.turnDarts}></DartIndicator>
+                    </div>
                 </div>
-
-                <div className="main-area">
-                    {this.state.transitioning && <Transition label={this.state.transitionLabel}></Transition>}
-
-                    {this.state.players[this.state.activePlayer.index] && (
-                        <CenterScore
-                            name={this.state.players[this.state.activePlayer.index].name}
-                            score={this.state.tempScore}></CenterScore>
-                    )}
-                </div>
-
-                <div className="user-area">
-                    {this.state.players && (
-                        <PlayerScore
-                            name={this.state.players[0].name}
-                            score={this.state.players[0].score}></PlayerScore>
-                    )}
-
-                    <EndTurnButton
-                        handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></EndTurnButton>
-
-                    {this.state.players && (
-                        <PlayerScore
-                            name={this.state.players[1].name}
-                            score={this.state.players[1].score}></PlayerScore>
-                    )}
-                </div>
-
-                <div className="footer">
-                    <DartIndicator dartSeq="0" turnDarts={this.state.turnDarts}></DartIndicator>
-                    <DartIndicator dartSeq="1" turnDarts={this.state.turnDarts}></DartIndicator>
-                    <DartIndicator dartSeq="2" turnDarts={this.state.turnDarts}></DartIndicator>
-                </div>
-            </div>
-        );
+            );
+        }
     }
 }

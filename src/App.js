@@ -15,6 +15,7 @@ export default class App extends Component {
     this.handleSelectOptions = this.handleSelectOptions.bind(this);
     this.state = {
       user: null,
+      screen: "Login",
       selectedOptions: null
     }
   }
@@ -22,7 +23,7 @@ export default class App extends Component {
   componentDidMount() {
     let user = JSON.parse(localStorage.getItem('user'));
     if (user !== null) {
-      this.setState({ user });
+      this.setState({ user, screen: "Menu" });
     }
   }
 
