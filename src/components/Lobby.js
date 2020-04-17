@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import './Lobby.scss';
-import { ServerComm } from '../libs/signalR/serverComm';
+
 
 export default class Lobby extends Component {
     constructor(props) {
@@ -8,7 +8,9 @@ export default class Lobby extends Component {
         this.handleServerMessage = this.handleServerMessage.bind(this);
         this.handleAddGameToLobby = this.handleAddGameToLobby.bind(this);
         this.joinGame = this.joinGame.bind(this);
-        this.serverComm = new ServerComm(this.handleServerMessage, this.handleAddGameToLobby, undefined, undefined);
+        this.serverComm = this.props.serverComm;
+        this.serverComm.sendToAllCallback = this.handleServerMessage;
+        this.serverComm.addGameToLobbyCallback = this.handleAddGameToLobby;
         this.state = {
             games: null
         }
@@ -21,7 +23,6 @@ export default class Lobby extends Component {
 
     componentWillUnmount() {
         console.log("Lobby unmounting");
-        // this.serverComm.stop();
     }
 
     async getGames() {

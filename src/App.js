@@ -5,6 +5,7 @@ import GameController from "./components/GameController";
 import Login from "./components/Login";
 import Menu from "./components/Menu";
 import Lobby from "./components/Lobby";
+import { ServerComm } from "./libs/signalR/serverComm";
 
 export default class App extends Component {
   constructor() {
@@ -28,6 +29,8 @@ export default class App extends Component {
 
   componentDidMount() {
     let user = JSON.parse(localStorage.getItem('user'));
+    let serverComm = new ServerComm();
+    this.setServerComm(serverComm);
     if (user !== null) {
       this.setUser(user);
     }
@@ -99,14 +102,19 @@ export default class App extends Component {
     else if (this.state.screen === "Lobby") {
       return (
           <div className="app">
-              <Lobby user={this.state.user} handleJoinGame={this.handleJoinGame}></Lobby>
+              <Lobby user={this.state.user} serverComm={this.state.serverComm} handleJoinGame={this.handleJoinGame}></Lobby>
           </div>
       );
     }
     else if (this.state.screen === "Game") {
       return (
           <div className="app">
-              <GameController user={this.state.user} gameId={this.state.gameId} gameStatus={this.state.gameStatus} selectedOptions={this.state.selectedOptions}></GameController>
+              <GameController
+                  user={this.state.user}
+                  serverComm={this.state.serverComm}
+                  gameId={this.state.gameId}
+                  gameStatus={this.state.gameStatus}
+                  selectedOptions={this.state.selectedOptions}></GameController>
           </div>
       );
     }

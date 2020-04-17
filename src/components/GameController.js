@@ -7,7 +7,7 @@ import EndTurnButton from './EndTurnButton';
 import PlayerScore from './PlayerScore';
 import Transition from './Transition';
 import DebugThrowDart from '../debug_components/DebugThrowDart';
-import { ServerComm } from '../libs/signalR/serverComm';
+
 
 export default class GameController extends Component {
     constructor(props) {
@@ -22,8 +22,12 @@ export default class GameController extends Component {
 
         this.handleServerMessage = this.handleServerMessage.bind(this);
         this.handlePlayerJoined = this.handlePlayerJoined.bind(this);
-        this.serverComm = new ServerComm(this.handleServerMessage, undefined, this.handlePlayerJoined, this.handlePlayerActionSent);
-        
+        this.serverComm = this.props.serverComm;
+        this.serverComm.sendToAllCallback = this.handleServerMessage;
+        this.serverComm.joinGameCallback = this.handlePlayerJoined;
+        this.serverComm.sendPlayerActionCallback = this.handlePlayerActionSent;
+
+
         this.state = {
             gameId: null,
             selectedOptions: this.props.selectedOptions,
@@ -152,8 +156,13 @@ export default class GameController extends Component {
     handlePlayerAction(playerAction, actionSource = "local") {
         console.log("playerAction: " + JSON.stringify(playerAction));
 
-        if (this.state.activePlayer.id !== this.props.user.Id || this.state.transitioning || this.state.activePlayer.id !== playerAction.player.id) return;
-
+        if (actionSource === "local" && (this.state.activePlayer.id !== this.props.user.Id || this.state.transitioning)) {
+            return;
+        }
+        else if (actionSource === "remote" && this.state.activePlayer.id != playerAction.player.id) {
+            return;
+        }
+        
         if (playerAction.type === "endTurn") {
             this.handleEndTurn(true);
         }
@@ -172,8 +181,8 @@ export default class GameController extends Component {
     }
 
     handlePlayerActionSent(gameId, playerAction) {
-        console.log("game handlePlayerActionSent: " + playerAction);
-        this.handlePlayerAction(playerAction, "remote");
+        console.log("game handlePlayerActionSent: " + JSON.parse(playerAction));
+        this.handlePlayerAction(JSON.parse(playerAction), "remote");
     }
 
     handleThrowDart(dart) {
