@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import "./BoardController.scss";
-import dartMap from "../libs/game-rules/dartMap";
+import dartMap from "../libs/game_rules/dartMap";
 
 export default class BoardController extends Component {
     constructor(props) {

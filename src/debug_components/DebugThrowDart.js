@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import './DebugThrowDart.scss';
-import dartMap from "../libs/game-rules/dartMap";
+import dartMap from "../libs/game_rules/dartMap";
 
 export default class DebugThrowDart extends Component {
     constructor(props) {
