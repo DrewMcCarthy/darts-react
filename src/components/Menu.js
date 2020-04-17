@@ -10,6 +10,7 @@ export default class Menu extends Component {
         this.handleGameVariation = this.handleGameVariation.bind(this);
         this.handleInOut = this.handleInOut.bind(this);
         this.handleReturn = this.handleReturn.bind(this);
+        this.setSelectedOptions = this.setSelectedOptions.bind(this);
         this.state = {
             availableOptions: null,
             selectedOptions: {
@@ -25,38 +26,42 @@ export default class Menu extends Component {
         this.getGameOptions();
     }
 
+    setSelectedOptions(selectedOptions) {
+        this.setState({ selectedOptions }, () => {
+            // Use in callback to lift state to parent
+            this.props.handleSelectedOptions(this.state.selectedOptions);
+        });
+    }
+
     handleReturn(event) {
         let selectedOptions = { ...this.state.selectedOptions };
         selectedOptions[event.target.id] = null;
-        this.setState({ selectedOptions });
+        this.setSelectedOptions(selectedOptions);
     }
 
     handleGameHost(event) {
         let selectedOptions = {...this.state.selectedOptions}
         selectedOptions.host = event.target.value;
-        this.setState({ selectedOptions });
+        this.setSelectedOptions(selectedOptions);
     }
 
     handleGameType(type) {
         let selectedOptions = {...this.state.selectedOptions}
         selectedOptions.type = type;
-        this.setState({ selectedOptions });
+        this.setSelectedOptions(selectedOptions);
     }
 
     handleGameVariation(variation) {
         let selectedOptions = { ...this.state.selectedOptions };
         selectedOptions.variation = variation;
-        this.setState({ selectedOptions });
+        this.setSelectedOptions(selectedOptions);
     }
 
     handleInOut(event) {
         let inOut = event.target.value;
         let selectedOptions = { ...this.state.selectedOptions };
         selectedOptions.inOut = inOut;
-        this.setState({ selectedOptions }, () => {
-            // Use in callback after last option setting to lift state to parent
-            this.props.handleSelectOptions(this.state.selectedOptions);
-        });
+        this.setSelectedOptions(selectedOptions);
     }
 
     async getGameOptions() {
@@ -74,7 +79,7 @@ export default class Menu extends Component {
     gameHostButtons() {
         return (
             <div className="btn-container">
-                <button className="menu__btn" value="Lobby" onClick={e => this.handleGameHost(e)}>
+                <button className="menu__btn" value="Lobby" onClick={() => this.props.handleSetScreen("Lobby")}>
                     Join Online
                 </button>
                 <button className="menu__btn" value="NewOnline" onClick={e => this.handleGameHost(e)}>

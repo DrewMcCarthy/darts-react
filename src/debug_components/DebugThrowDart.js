@@ -16,10 +16,10 @@ export default class DebugThrowDart extends Component {
 
         let dart = dartMap(boardCoords);
         let playerAction = {
-            player: { name: "Drew", isActive: true, score: 88 },
+            player: { id: this.props.user.Id, name: this.props.user.Username },
             type: "throwDart",
-            action: {dart: dart}
-        }
+            action: { dart: dart }
+        };
         console.log("playerAction: " + JSON.stringify(playerAction));
         this.props.handlePlayerAction(playerAction);
     }

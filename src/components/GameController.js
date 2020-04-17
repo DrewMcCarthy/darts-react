@@ -16,17 +16,18 @@ export default class GameController extends Component {
         this.addRoundDart = this.addRoundDart.bind(this);
         this.handleEndTurn = this.handleEndTurn.bind(this);
         this.changeActivePlayer = this.changeActivePlayer.bind(this);
+        this.handlePlayerActionSent = this.handlePlayerActionSent.bind(this);
         this.handleBust = this.handleBust.bind(this);
+        this.initPlayers = this.initPlayers.bind(this);
 
         this.handleServerMessage = this.handleServerMessage.bind(this);
         this.handlePlayerJoined = this.handlePlayerJoined.bind(this);
-        this.serverComm = new ServerComm(this.handleServerMessage, undefined, this.handlePlayerJoined);
-
+        this.serverComm = new ServerComm(this.handleServerMessage, undefined, this.handlePlayerJoined, this.handlePlayerActionSent);
+        
         this.state = {
+            gameId: null,
             selectedOptions: this.props.selectedOptions,
-            players: [
-                { id: this.props.user.Id, name: this.props.user.Username, score: null }
-            ],
+            players: [],
             activePlayer: {},
             winningPlayer: {},
             turnDarts: [],
@@ -40,32 +41,68 @@ export default class GameController extends Component {
     componentDidMount() {
         // Load sounds
         this.dartSound = new UIfx(process.env.PUBLIC_URL + "/audio/dartSound.mp3");
-        
-        // Set board start score
-        var tempScore = this.state.selectedOptions.variation.StartScore;
-        
-        // Set players' start score
-        var players = [...this.state.players];
-        players.forEach((p) => p.score = tempScore);
 
-        // this.setState({ tempScore, players, activePlayer: { index: 0, id: this.state.players[0].id } });
+        if (this.props.gameStatus === "Started") {
+            this.sendGameToServer();
+            let tempScore = this.state.selectedOptions.variation.StartScore;
+            let creator = { id: this.props.user.Id, name: this.props.user.Username, score: this.state.selectedOptions.variation.StartScore };
+            let players = [creator];
+            this.setState({ players, tempScore });
+        }
+        else if (this.props.gameStatus === "Joined") {
+            this.initPlayers();
+        }
         
-        this.sendGameToServer();
     }
 
-    initPlayers() {
+    async initPlayers() {
+        if (this.props.gameStatus === "Joined") {
+            await this.getGameInfo().then((gameInfo) => {
+                    let creator = { id: gameInfo.CreatedByUserId, name: gameInfo.CreatedBy, score: gameInfo.StartScore };
+                    let joiner = { id: this.props.user.Id, name: this.props.user.Username, score: gameInfo.StartScore };
+                    let players = [creator, joiner];
+                    this.setState({
+                        gameId: this.props.gameId,
+                        players,
+                        waitingForPlayers: false,
+                        activePlayer: { index: 0, id: creator.id },
+                        tempScore: gameInfo.StartScore
+                    });
+                }, (error) => console.log(error));
+        }
+    }
 
+    // If joining a game, get the settings and creator info
+    async getGameInfo() {
+        let response = await fetch("https://localhost:5001/darts/game/" + this.props.gameId, {
+            method: "get",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + this.props.user.JwtToken
+            }
+        });
+        let gameInfo = await response.json();
+        console.log("gameInfo: " + JSON.stringify(gameInfo));
+        return gameInfo;
     }
 
     handleServerMessage(receivedMessage) {
         console.log(receivedMessage);
     }
 
+    // If hosting, this is called when other players join
     handlePlayerJoined(userId, username) {
         console.log(`Player Joined - ID:${userId} - Name:${username}`);
+        let players = [...this.state.players];
+        let joiner = { id: userId, name: username, score: this.state.selectedOptions.variation.StartScore };
+        players.push(joiner);
+        this.setState({ players, activePlayer: { index: 0, id: this.props.user.Id }, waitingForPlayers: false });
     }
 
+    // If hosting
     async sendGameToServer() {
+        if (this.props.gameStatus !== "Started") return;
+
         let data = {
             "gameTypeId": this.state.selectedOptions.variation.GameTypeId,
             "gameVariationId": this.state.selectedOptions.variation.Id,
@@ -81,6 +118,8 @@ export default class GameController extends Component {
         });
         let gameId = await response.json();
         console.log("gameId: " + gameId);
+
+        this.setState({ gameId });
         this.serverComm.addGameToLobby(JSON.stringify(data));
         this.serverComm.joinGame(gameId.toString(), this.props.user.Id.toString());
     }
@@ -110,10 +149,10 @@ export default class GameController extends Component {
         }
     }
     
-    handlePlayerAction(playerAction) {
+    handlePlayerAction(playerAction, actionSource = "local") {
         console.log("playerAction: " + JSON.stringify(playerAction));
 
-        if (!playerAction.player.isActive || this.state.transitioning) return;
+        if (this.state.activePlayer.id !== this.props.user.Id || this.state.transitioning || this.state.activePlayer.id !== playerAction.player.id) return;
 
         if (playerAction.type === "endTurn") {
             this.handleEndTurn(true);
@@ -125,6 +164,16 @@ export default class GameController extends Component {
             // because the async setState wasn't updating state in time to get new values
             // this.handleEndTurn(false);
         }
+
+        // Only send to server if it wasn't an action received from the server
+        if (actionSource === "local") {
+            this.serverComm.sendPlayerAction(this.state.gameId, JSON.stringify(playerAction));
+        }
+    }
+
+    handlePlayerActionSent(gameId, playerAction) {
+        console.log("game handlePlayerActionSent: " + playerAction);
+        this.handlePlayerAction(playerAction, "remote");
     }
 
     handleThrowDart(dart) {
@@ -216,17 +265,23 @@ export default class GameController extends Component {
                         <DebugThrowDart
                             label="Single 10"
                             value="35-45"
+                            user={this.props.user}
                             handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></DebugThrowDart>
                         <DebugThrowDart
                             label="Triple 20"
                             value="39-28"
+                            user={this.props.user}
                             handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></DebugThrowDart>
                         <DebugThrowDart
                             label="Triple 7"
                             value="39-25"
+                            user={this.props.user}
                             handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></DebugThrowDart>
                         <BoardController
-                            handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></BoardController>
+                            user={this.props.user}
+                            handlePlayerAction={playerAction =>
+                                this.handlePlayerAction(playerAction)
+                            }></BoardController>
                     </div>
 
                     <div className="main-area">
@@ -247,6 +302,7 @@ export default class GameController extends Component {
                         )}
 
                         <EndTurnButton
+                            user={this.props.user}
                             handlePlayerAction={playerAction => this.handlePlayerAction(playerAction)}></EndTurnButton>
 
                         {this.state.players && (

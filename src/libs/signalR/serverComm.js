@@ -1,15 +1,24 @@
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 
 export class ServerComm {
-    constructor(sendToAllCallback = null, addGameToLobbyCallback = null, joinGameCallback = null) {
+    constructor(sendToAllCallback = null, addGameToLobbyCallback = null, joinGameCallback = null, sendPlayerActionCallback = null) {
         this.username = null;
         this.sendToAllCallback = sendToAllCallback;
         this.addGameToLobbyCallback = addGameToLobbyCallback;
         this.joinGameCallback = joinGameCallback;
+        this.sendPlayerActionCallback = sendPlayerActionCallback;
         this.hubConnected = null;
         this.sendMessage = this.sendMessage.bind(this);
         this.setupHub = this.setupHub.bind(this);
         this.setupHub();
+    }
+
+    stop() {
+        this.hubConnection.stop();
+        this.sendToAllCallback = null;
+        this.addGameToLobbyCallback = null;
+        this.joinGameCallback = null;
+        this.sendPlayerActionCallback = null;
     }
     
     setupHub() {
@@ -27,6 +36,9 @@ export class ServerComm {
         });
         this.hubConnection.on("joinGame", (userId, username) => {
             this.joinGameCallback(userId, username);
+        });
+        this.hubConnection.on("sendPlayerAction", (gameId, playerAction) => {
+            this.sendPlayerActionCallback(gameId, playerAction);
         });
 
         this.hubConnected = this.hubConnection.start().catch(e => console.log(e));
@@ -56,6 +68,12 @@ export class ServerComm {
     joinGame(gameId, userId, username) {
         this.hubConnected.then(() => {
             this.hubConnection.invoke("joinGame", gameId, userId, username).catch(err => console.log(err));
+        });
+    }
+
+    sendPlayerAction(gameId, playerAction) {
+        this.hubConnected.then(() => {
+            this.hubConnection.invoke("sendPlayerAction", gameId, playerAction).catch(err => console.log(err));
         });
     }
 }

@@ -8,7 +8,7 @@ export default class Lobby extends Component {
         this.handleServerMessage = this.handleServerMessage.bind(this);
         this.handleAddGameToLobby = this.handleAddGameToLobby.bind(this);
         this.joinGame = this.joinGame.bind(this);
-        this.serverComm = new ServerComm(this.handleServerMessage, this.handleAddGameToLobby);
+        this.serverComm = new ServerComm(this.handleServerMessage, this.handleAddGameToLobby, undefined, undefined);
         this.state = {
             games: null
         }
@@ -17,6 +17,11 @@ export default class Lobby extends Component {
     async componentDidMount() {
         await this.getGames();
         this.serverComm.joinLobby();
+    }
+
+    componentWillUnmount() {
+        console.log("Lobby unmounting");
+        // this.serverComm.stop();
     }
 
     async getGames() {
@@ -34,15 +39,16 @@ export default class Lobby extends Component {
     handleServerMessage(receivedMessage) {
         console.log(receivedMessage);
     }
-
+    
     // Refresh list of games after receiving message that a game was added
     async handleAddGameToLobby(lobbyGame) {
         console.log(lobbyGame);
         await this.getGames();
     }
 
-    async joinGame(gameId, createdByUserId) {
+    async joinGame(gameId) {
         this.serverComm.joinGame(gameId.toString(), this.props.user.Id.toString(), this.props.user.Username);
+        this.props.handleJoinGame(gameId);
     }
 
     render() {
@@ -51,9 +57,9 @@ export default class Lobby extends Component {
                 <div className="lobby-container">
                     <div className="lobby-games">
                         {this.state.games.map((g, i) => (
-                            <div key={g.Id} className="lobby-game" onClick={() => this.joinGame(g.Id, g.CreatedByUserId)}>
+                            <div key={g.Id} className="lobby-game" onClick={() => this.joinGame(g.Id)}>
                                 <input name="gameId" type="hidden" value={g.Id}></input>
-                                <input name="createdByUserId" type="hidden" value={g.CreatedByUserId}></input>
+                                {/* <input name="createdByUserId" type="hidden" value={g.CreatedByUserId}></input> */}
                                 <p className="game-detail">{`Type: ${g.GameType}`}</p>
                                 <span className="game-detail">{`Variation: ${g.GameVariation}`}</span>
                                 <p className="game-detail">{`Hosted By: ${g.CreatedBy}`}</p>

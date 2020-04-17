@@ -77,11 +77,9 @@ export default class BoardController extends Component {
         console.log("boardCoords: " + boardCoords);
         console.log("dartMap: " + dartMap(boardCoords).mark + " " + dartMap(boardCoords).multiplier);
 
-        // this.addDart(dartMap(boardCoords));
-        
         let dart = dartMap(boardCoords);
         let playerAction = {
-            player: { name: "Drew", isActive: true, score: 88 },
+            player: { id: this.props.user.Id, name: this.props.user.Username },
             type: "throwDart",
             action: {dart: dart}
         }

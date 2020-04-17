@@ -9,7 +9,7 @@ export default class EndTurnButton extends Component {
 
     handleClick() {
         let playerAction = {
-            player: { name: "Drew", isActive: true, score: 88 },
+            player: { id: this.props.user.Id, name: this.props.user.Username },
             type: "endTurn",
             action: {}
         };
