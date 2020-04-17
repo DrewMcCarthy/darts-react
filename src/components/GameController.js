@@ -56,7 +56,6 @@ export default class GameController extends Component {
         else if (this.props.gameStatus === "Joined") {
             this.initPlayers();
         }
-        
     }
 
     async initPlayers() {
