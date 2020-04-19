@@ -1,4 +1,5 @@
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
+import { hub_url } from '../../utils';
 
 export class ServerComm {
     constructor(sendToAllCallback = null, addGameToLobbyCallback = null, joinGameCallback = null, sendPlayerActionCallback = null) {
@@ -23,7 +24,7 @@ export class ServerComm {
     
     setupHub() {
         this.hubConnection = new HubConnectionBuilder()
-            .withUrl("https://localhost:5001/dartsHub")
+            .withUrl(`${ hub_url() }`)
             .configureLogging(LogLevel.Trace)
             .build();
 
