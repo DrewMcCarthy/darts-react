@@ -28,6 +28,7 @@ export default class App extends Component {
   }
 
   componentDidMount() {
+    console.log("Process Env: " + process.env.NODE_ENV);
     let user = JSON.parse(localStorage.getItem('user'));
     let serverComm = new ServerComm();
     this.setServerComm(serverComm);

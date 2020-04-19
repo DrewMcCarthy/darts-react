@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './Login.scss';
+import { api_url } from '../utils';
 
 export default class Login extends Component {
     constructor(props) {
@@ -30,7 +31,7 @@ export default class Login extends Component {
     }
 
     async authenticate() {
-        let response = await fetch('https://localhost:5001/darts/authenticate', {
+        let response = await fetch(`${api_url()}/authenticate`, {
             method: "post",
             body: JSON.stringify({ email: this.state.email, password: this.state.password }),
             headers: { "Content-Type": "application/json" }
@@ -46,7 +47,7 @@ export default class Login extends Component {
             return;
         }
 
-        let response = await fetch('https://localhost:5001/darts/register', {
+        let response = await fetch(`${api_url()}/register`, {
             method: "post",
             body: JSON.stringify({ email: this.state.email, username: this.state.username, password: this.state.password }),
             headers: { "Content-Type": "application/json" }

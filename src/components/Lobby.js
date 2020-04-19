@@ -26,7 +26,7 @@ export default class Lobby extends Component {
     }
 
     async getGames() {
-        let response = await fetch("https://localhost:5001/darts/lobby", {
+        let response = await fetch(`${api_url()}/lobby`, {
             method: "get",
             headers: { 
                 "Content-Type": "application/json",

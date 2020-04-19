@@ -77,7 +77,7 @@ export default class GameController extends Component {
 
     // If joining a game, get the settings and creator info
     async getGameInfo() {
-        let response = await fetch("https://localhost:5001/darts/game/" + this.props.gameId, {
+        let response = await fetch(`${api_url()}/game/${this.props.gameId}`, {
             method: "get",
             headers: {
                 "Content-Type": "application/json",
@@ -112,7 +112,7 @@ export default class GameController extends Component {
             "createdByUserId": this.props.user.Id,
             "status": "Lobby"
         };
-        let response = await fetch("https://localhost:5001/darts/creategame", {
+        let response = await fetch(`${api_url()}/creategame`, {
             method: "post",
             headers: { 
                 "Content-Type": "application/json",

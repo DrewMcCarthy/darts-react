@@ -65,7 +65,7 @@ export default class Menu extends Component {
     }
 
     async getGameOptions() {
-        let response = await fetch('https://localhost:5001/darts/options', {
+        let response = await fetch(`${api_url()}/options`, {
         method: "get",
         headers: { 
             "Content-Type": "application/json",
