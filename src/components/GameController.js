@@ -7,6 +7,7 @@ import EndTurnButton from './EndTurnButton';
 import PlayerScore from './PlayerScore';
 import Transition from './Transition';
 import DebugThrowDart from '../debug_components/DebugThrowDart';
+import { api_url } from "../utils";
 
 
 export default class GameController extends Component {

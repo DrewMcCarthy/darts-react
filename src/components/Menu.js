@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
 import './Menu.scss';
 import Lobby from './Lobby';
+import { api_url } from "../utils";
+
 
 export default class Menu extends Component {
     constructor(props) {

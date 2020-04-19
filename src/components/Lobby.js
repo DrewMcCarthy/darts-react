@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './Lobby.scss';
+import { api_url } from "../utils";
 
 
 export default class Lobby extends Component {

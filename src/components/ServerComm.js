@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
+import { hub_url } from '../utils'
 
 export default class ServerComm extends Component {
     constructor(props) {
@@ -18,7 +19,7 @@ export default class ServerComm extends Component {
 
     setupHub() {
         let hubConnection = new HubConnectionBuilder()
-            .withUrl("https://localhost:5001/dartsHub")
+            .withUrl(`${hub_url()}`)
             .configureLogging(LogLevel.Information)
             .build();
 
