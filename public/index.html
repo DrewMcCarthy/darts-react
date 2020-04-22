@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta
-      name="description"
-      content="Web site created using create-react-app"
+      name="Play Darts Online"
+      content="Connect your home dartboard and play against other people online"
     />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <!--
@@ -24,7 +24,7 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
+    <title>Play Darts!</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -46,7 +46,9 @@
           return true;
         } else {
           console.log('Web Bluetooth API is not available.\n' +
-              'Please make sure the "Experimental Web Platform features" flag is enabled.');
+              'Chrome is the only supported browser at this time.');
+          alert ('Web Bluetooth API is not available.\n' +
+              'Chrome is the only supported browser at this time.');
           return false;
         }
       }

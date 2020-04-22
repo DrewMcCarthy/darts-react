@@ -10,7 +10,6 @@ import { ServerComm } from "./libs/signalR/serverComm";
 export default class App extends Component {
   constructor() {
     super();
-    this.setUser = this.setUser.bind(this);
     this.handleSelectedOptions = this.handleSelectedOptions.bind(this);
     this.setUser = this.setUser.bind(this);
     this.handleStartGame = this.handleStartGame.bind(this);

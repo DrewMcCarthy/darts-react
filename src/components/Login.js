@@ -1,10 +1,13 @@
 import React, { Component } from 'react';
 import './Login.scss';
-import { api_url } from '../utils';
+// import { api_url } from '../utils';
+import LoginService from '../services/LoginService';
 
 export default class Login extends Component {
     constructor(props) {
         super(props);
+        this.loginService = new LoginService();
+        this.appSetUser = this.props.setUser;
         this.authenticate = this.authenticate.bind(this);
         this.register = this.register.bind(this);
         this.state = {
@@ -15,70 +18,86 @@ export default class Login extends Component {
         }
     }
 
-    onChangeEmail(event) {
-        let email = event.target.value;
-        this.setState({ email });
-    }
-
-    onChangePassword(event) {
-        let password = event.target.value;
-        this.setState({ password });
-    }
-
-    onChangeUsername(event) {
-        let username = event.target.value;
-        this.setState({ username });
+    onTextChange(event) {
+        let { name, value } = event.target;
+        this.setState({ [name]: value })
     }
 
     async authenticate() {
-        let response = await fetch(`${api_url()}/authenticate`, {
-            method: "post",
-            body: JSON.stringify({ email: this.state.email, password: this.state.password }),
-            headers: { "Content-Type": "application/json" }
-        });
-        let user = await response.json();
-        // console.log("authenticate: " + JSON.stringify(data));
-        this.props.setUser(user);
+        try {
+            let user = await this.loginService.authenticate(this.state.email, this.state.password)
+            
+            if (user !== undefined)
+                this.appSetUser(user);
+        } catch (error) {
+            alert(error);
+        }
     }
 
     async register() {
-        if (this.state.username === null || this.state.password === null || this.state.email === null) {
-            alert("Must Fill Out All Fields");
-            return;
+        try {
+            let user = await this.loginService.register(this.state.email, this.state.password, this.state.username)
+            if (user !== undefined)
+                this.appSetUser(user);
+        } catch (error) {
+            alert(error);
         }
-
-        let response = await fetch(`${api_url()}/register`, {
-            method: "post",
-            body: JSON.stringify({ email: this.state.email, username: this.state.username, password: this.state.password }),
-            headers: { "Content-Type": "application/json" }
-        });
-        let user = await response.json();
-        console.log('user: ' + JSON.stringify(user));
-        this.props.setUser(user);
     }
 
     render() {
         if (this.state.isRegistering === true) {
             return (
                 <div className="login-container">
-                <div className="login-controls">
-                    <input className="login-input" type="email" name="email" placeholder="Email Address" onChange={e => this.onChangeEmail(e)}></input>
-                    <input className="login-input" name="username" placeholder="Username" onChange={e => this.onChangeUsername(e)}></input>
-                    <input className="login-input" type="password" name="password" placeholder="Password" onChange={e => this.onChangePassword(e)}></input>
-                    <button className="login-button" onClick={this.register}>Register</button>
+                    <div className="login-controls">
+                        <input
+                            className="login-input"
+                            type="email"
+                            name="email"
+                            placeholder="Email Address"
+                            onChange={(e) => this.onTextChange(e)}></input>
+                        <input
+                            className="login-input"
+                            type="password"
+                            name="password"
+                            placeholder="Password"
+                            onChange={(e) => this.onTextChange(e)}></input>
+                        <input
+                            className="login-input"
+                            name="username"
+                            placeholder="Username"
+                            onChange={(e) => this.onTextChange(e)}></input>
+                        <button className="login-button" onClick={this.register}>
+                            Register
+                        </button>
+                        <button className="login-button" onClick={() => this.setState({ isRegistering: false })}>
+                            Return
+                        </button>
+                    </div>
                 </div>
-            </div>
-            )
+            );
         }
         else {
             return (
                 <div className="login-container">
                     <div className="login-controls">
-                        <input className="login-input" type="email" name="email" placeholder="Email Address" onChange={e => this.onChangeEmail(e)}></input>
-                        <input className="login-input" type="password" name="password" placeholder="Password" onChange={e => this.onChangePassword(e)}></input>
-                        {/* <input name="username" placeholder="Username" onChange={e => this.onChangeUsername(e)}></input> */}
-                        <button className="login-button" onClick={this.authenticate}>Login</button>
-                        <button className="login-button" onClick={() => this.setState({ isRegistering: true })}>Register</button>
+                        <input
+                            className="login-input"
+                            type="email"
+                            name="email"
+                            placeholder="Email Address"
+                            onChange={(e) => this.onTextChange(e)}></input>
+                        <input
+                            className="login-input"
+                            type="password"
+                            name="password"
+                            placeholder="Password"
+                            onChange={(e) => this.onTextChange(e)}></input>
+                        <button className="login-button" onClick={this.authenticate}>
+                            Login
+                        </button>
+                        <button className="login-button" onClick={() => this.setState({ isRegistering: true })}>
+                            Register
+                        </button>
                     </div>
                 </div>
             );

@@ -25,7 +25,7 @@ export class ServerComm {
     setupHub() {
         this.hubConnection = new HubConnectionBuilder()
             .withUrl(`${ hub_url() }`)
-            .configureLogging(LogLevel.Trace)
+            .configureLogging(LogLevel.Information)
             .build();
 
         // The first parameter to on() must match a method name on the server
