@@ -1,24 +1,25 @@
 import { api_url } from '../utils';
 
 export default class MenuService {
-    constructor() {
 
-    }
-
-    async getGameOptions() {
+    async getGameOptions(user) {
         let response = await fetch(`${api_url()}/options`, {
         method: "get",
         headers: { 
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + this.props.user.JwtToken 
+            "Authorization": "Bearer " + user.JwtToken 
         }
         });
-        let { GameTypes, GameVariations } = await response.json();
-        return new AllOptions(GameTypes, GameVariations);
+
+        if (!response.ok) throw new Error("Unable to Retrieve Configuration");
+
+        let { GameTypes, GameVariations, GameSettings } = await response.json();
+        return new AllOptions(GameTypes, GameVariations, GameSettings);
     }
 }
 
-function AllOptions(types, variations) {
-    this.types = types;
-    this.variations = variations;
+function AllOptions(GameTypes, GameVariations, GameSettings) {
+    this.GameTypes = GameTypes;
+    this.GameVariations = GameVariations;
+    this.GameSettings = GameSettings;
 }

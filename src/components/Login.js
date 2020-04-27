@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import './Login.scss';
-// import { api_url } from '../utils';
 import LoginService from '../services/LoginService';
 
 export default class Login extends Component {
@@ -25,9 +24,8 @@ export default class Login extends Component {
 
     async authenticate() {
         try {
-            let user = await this.loginService.authenticate(this.state.email, this.state.password)
-            
-            if (user !== undefined)
+            let user = await this.loginService.authenticate(this.state.email, this.state.password)        
+            if (user)
                 this.appSetUser(user);
         } catch (error) {
             alert(error);
@@ -37,7 +35,7 @@ export default class Login extends Component {
     async register() {
         try {
             let user = await this.loginService.register(this.state.email, this.state.password, this.state.username)
-            if (user !== undefined)
+            if (user)
                 this.appSetUser(user);
         } catch (error) {
             alert(error);

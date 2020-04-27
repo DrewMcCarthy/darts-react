@@ -1,15 +1,21 @@
 import React, { Component } from 'react';
 import './Lobby.scss';
-import { api_url } from "../utils";
+import LobbyService from '../services/LobbyService';
 
 
 export default class Lobby extends Component {
     constructor(props) {
         super(props);
+        // props
+        this.user = this.props.user;
+        this.serverComm = this.props.serverComm;
+        this.appJoinGame = this.props.handleJoinGame;
+        this.appSetScreen = this.props.handleSetScreen;
+
+        this.lobbyService = new LobbyService();
         this.handleServerMessage = this.handleServerMessage.bind(this);
         this.handleAddGameToLobby = this.handleAddGameToLobby.bind(this);
         this.joinGame = this.joinGame.bind(this);
-        this.serverComm = this.props.serverComm;
         this.serverComm.sendToAllCallback = this.handleServerMessage;
         this.serverComm.addGameToLobbyCallback = this.handleAddGameToLobby;
         this.state = {
@@ -22,23 +28,20 @@ export default class Lobby extends Component {
         this.serverComm.joinLobby();
     }
 
-    componentWillUnmount() {
+    async componentWillUnmount() {
         console.log("Lobby unmounting");
     }
 
     async getGames() {
-        let response = await fetch(`${api_url()}/lobby`, {
-            method: "get",
-            headers: { 
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + this.props.user.JwtToken
-            }
-        });
-        let games = await response.json();
-        this.setState({ games });
+        try {
+            let games = await this.lobbyService.getGames(this.user);
+            if (games) this.setState({ games });
+        } catch (error) {
+            alert(error);
+        }
     }
 
-    handleServerMessage(receivedMessage) {
+    async handleServerMessage(receivedMessage) {
         console.log(receivedMessage);
     }
     
@@ -49,8 +52,8 @@ export default class Lobby extends Component {
     }
 
     async joinGame(gameId) {
-        this.serverComm.joinGame(gameId.toString(), this.props.user.Id.toString(), this.props.user.Username);
-        this.props.handleJoinGame(gameId);
+        this.serverComm.joinGame(gameId.toString(), this.user.Id.toString(), this.user.Username);
+        this.appJoinGame(gameId);
     }
 
     render() {
@@ -58,10 +61,13 @@ export default class Lobby extends Component {
             return (
                 <div className="lobby-container">
                     <div className="lobby-games">
+                        <button key="999" name="return" className="lobby__btn" onClick={() => this.appSetScreen("Menu")}>
+                            Return
+                        </button>
+                        
                         {this.state.games.map((g, i) => (
                             <div key={g.Id} className="lobby-game" onClick={() => this.joinGame(g.Id)}>
                                 <input name="gameId" type="hidden" value={g.Id}></input>
-                                {/* <input name="createdByUserId" type="hidden" value={g.CreatedByUserId}></input> */}
                                 <p className="game-detail">{`Type: ${g.GameType}`}</p>
                                 <span className="game-detail">{`Variation: ${g.GameVariation}`}</span>
                                 <p className="game-detail">{`Hosted By: ${g.CreatedBy}`}</p>

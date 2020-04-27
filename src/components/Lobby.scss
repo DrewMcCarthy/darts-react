@@ -4,7 +4,7 @@
 }
 
 .lobby-games {
-    height: 100vh;
+    max-height: 70vh;
     overflow-y: scroll;
     margin: auto;
     
@@ -17,6 +17,23 @@
 .lobby-game {
     width: 100%;
     min-width: 800px;
+    margin: 2rem 0;
+    padding: 1rem 2rem;
+    background: rgba($color: #444343, $alpha: .7);
+    border: 2px solid #F5E86B;
+    border-radius: 60px;
+    color: #F5E86B;
+    font-size: 3rem;
+
+    &:hover,
+    &:active {
+        background: darken(rgba($color: #444343, $alpha: .7), $amount: 10)
+    }
+}
+
+.lobby__btn {
+    width: 100%;
+    min-width: 00px;
     margin: 2rem 0;
     padding: 1rem 2rem;
     background: rgba($color: #444343, $alpha: .7);

@@ -14,10 +14,6 @@ export default class BoardController extends Component {
 
     }
 
-    // componentDidMount() {
-    //     this.connectToBoard();
-    // }
-
     connectToBoard() {
         let serviceUuid = parseInt("0xFFE0");
         let characteristicUuid = parseInt("0xFFE1");
@@ -93,11 +89,6 @@ export default class BoardController extends Component {
                 <span className="header__playerName">Drew</span>
                 <div className={`connection-indicator ${this.state.boardConnected ? "active" : "inactive animated heartBeat infinite"}`}
                     onClick={this.connectToBoard}></div>
-                {/* <div>
-                    {this.state.dartsThrown.map((dart, idx) => {
-                        return <p key={idx}>{this.dartToString(dart)}</p>
-                    })}
-                </div> */}
             </div>
         );
     }

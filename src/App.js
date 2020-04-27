@@ -45,8 +45,8 @@ export default class App extends Component {
     localStorage.setItem('user', JSON.stringify(user));
   }
 
-  handleStartGame() {
-    this.handleGameStatus("Started");
+  handleStartGame(host) {
+    this.handleGameStatus(`Started${host}`);
     this.handleSetScreen("Game");
   }
 
@@ -62,13 +62,13 @@ export default class App extends Component {
 
   handleSelectedOptions(selectedOptions) {
     this.setState({ selectedOptions });
-    // See if the last option for the game type is set and start game if so
-    // 01 - InOut setting
-    if (selectedOptions && selectedOptions.type && selectedOptions.type.Name === "01" && selectedOptions.inOut !== null) {
-        this.handleStartGame();
+    // Once the settings are chosen (after game type and variation), start the game
+    // 01
+    if (selectedOptions && selectedOptions.type && selectedOptions.type.Name === "01" && selectedOptions.settings !== null) {
+        this.handleStartGame(selectedOptions.host);
     }
-    // Cricket - SingleDouble Bull setting
-    else if (selectedOptions && selectedOptions.type && selectedOptions.type.Name === "Cricket" && selectedOptions.inOut !== null) {
+    // Cricket
+    else if (selectedOptions && selectedOptions.type && selectedOptions.type.Name === "Cricket" && selectedOptions.settings !== null) {
         this.handleStartGame();
     }
   }
@@ -102,7 +102,11 @@ export default class App extends Component {
     else if (this.state.screen === "Lobby") {
       return (
           <div className="app">
-              <Lobby user={this.state.user} serverComm={this.state.serverComm} handleJoinGame={this.handleJoinGame}></Lobby>
+              <Lobby
+                  user={this.state.user}
+                  serverComm={this.state.serverComm}
+                  handleJoinGame={this.handleJoinGame}
+                  handleSetScreen={this.handleSetScreen}></Lobby>
           </div>
       );
     }

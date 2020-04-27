@@ -1,5 +1,5 @@
 export default function dartMap(dart){
-    var map = {
+    let map = {
         "39-28": {"mark": 20, "multiplier": 3},
         "37-28": {"mark": 20, "multiplier": 2},
         "38-28": {"mark": 20, "multiplier": 1},

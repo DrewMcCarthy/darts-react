@@ -4,9 +4,11 @@ import './DartIndicator.scss';
 export default class DartIndicator extends Component {
     
     dartToString(dart) {
-        if ( dart.multiplier === 1 ) return "Single " + dart.mark;
-        if ( dart.multiplier === 2 ) return "Double " + dart.mark;
-        if ( dart.multiplier === 3 ) return "Triple " + dart.mark;
+        let mark = dart.mark === 25 ? "Bullseye" : dart.mark;
+        
+        if ( dart.multiplier === 1 ) return "Single " + mark;
+        if ( dart.multiplier === 2 ) return "Double " + mark;
+        if ( dart.multiplier === 3 ) return "Triple " + mark;
     }
 
     render() {

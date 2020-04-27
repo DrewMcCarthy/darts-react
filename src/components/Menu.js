@@ -1,93 +1,77 @@
 import React, { Component } from 'react'
 import './Menu.scss';
-import Lobby from './Lobby';
-import { api_url } from "../utils";
+import MenuService from '../services/MenuService';
 
 
 export default class Menu extends Component {
     constructor(props) {
         super(props);
-        this.handleGameHost = this.handleGameHost.bind(this);
-        this.handleGameType = this.handleGameType.bind(this);
-        this.handleGameVariation = this.handleGameVariation.bind(this);
-        this.handleInOut = this.handleInOut.bind(this);
+        // props
+        this.user = this.props.user;
+        this.appSelectedOptions = this.props.handleSelectedOptions;
+        this.appSetScreen = this.props.handleSetScreen;
+
+        this.menuService = new MenuService();
+        this.handleOptionSelected = this.handleOptionSelected.bind(this);
         this.handleReturn = this.handleReturn.bind(this);
         this.setSelectedOptions = this.setSelectedOptions.bind(this);
         this.state = {
-            availableOptions: null,
+            allOptions: null,
             selectedOptions: {
                 host: null,
                 type: null,
                 variation: null,
-                inOut: null
+                settings: null
             }
         };
     }
 
-    componentDidMount() {
-        this.getGameOptions();
+    async componentDidMount() {
+        try {
+            let allOptions = await this.menuService.getGameOptions(this.user);
+            if (allOptions) {
+                this.setState({ allOptions });
+            }
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
     }
 
     setSelectedOptions(selectedOptions) {
         this.setState({ selectedOptions }, () => {
             // Use in callback to lift state to parent
-            this.props.handleSelectedOptions(this.state.selectedOptions);
+            this.appSelectedOptions(this.state.selectedOptions);
         });
     }
 
     handleReturn(event) {
         let selectedOptions = { ...this.state.selectedOptions };
-        selectedOptions[event.target.id] = null;
+        selectedOptions[event.target.name] = null;
         this.setSelectedOptions(selectedOptions);
     }
 
-    handleGameHost(event) {
+    handleOptionSelected(event, value = null) {
+        let newVal = value ? value : event.target.value; 
         let selectedOptions = {...this.state.selectedOptions}
-        selectedOptions.host = event.target.value;
+        selectedOptions[event.target.name] = newVal;
         this.setSelectedOptions(selectedOptions);
-    }
-
-    handleGameType(type) {
-        let selectedOptions = {...this.state.selectedOptions}
-        selectedOptions.type = type;
-        this.setSelectedOptions(selectedOptions);
-    }
-
-    handleGameVariation(variation) {
-        let selectedOptions = { ...this.state.selectedOptions };
-        selectedOptions.variation = variation;
-        this.setSelectedOptions(selectedOptions);
-    }
-
-    handleInOut(event) {
-        let inOut = event.target.value;
-        let selectedOptions = { ...this.state.selectedOptions };
-        selectedOptions.inOut = inOut;
-        this.setSelectedOptions(selectedOptions);
-    }
-
-    async getGameOptions() {
-        let response = await fetch(`${api_url()}/options`, {
-        method: "get",
-        headers: { 
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + this.props.user.JwtToken 
-        }
-        });
-        let availableOptions = await response.json();
-        this.setState({ availableOptions });
     }
 
     gameHostButtons() {
         return (
             <div className="btn-container">
-                <button className="menu__btn" value="Lobby" onClick={() => this.props.handleSetScreen("Lobby")}>
+                <button className="menu__btn" name="host" value="Lobby" onClick={() => this.appSetScreen("Lobby")}>
                     Join Online
                 </button>
-                <button className="menu__btn" value="NewOnline" onClick={e => this.handleGameHost(e)}>
+                <button
+                    className="menu__btn"
+                    name="host"
+                    value="Online"
+                    onClick={(e) => this.handleOptionSelected(e)}>
                     Host Online
                 </button>
-                <button className="menu__btn" value="Local" onClick={e => this.handleGameHost(e)}>
+                <button className="menu__btn" name="host" value="Local" onClick={(e) => this.handleOptionSelected(e)}>
                     Local Play
                 </button>
             </div>
@@ -95,14 +79,14 @@ export default class Menu extends Component {
     }
 
     gameTypeButtons() {
-        var buttonArray = [];
-        var typeButtons = this.state.availableOptions.GameTypes.map(gt => (
-            <button key={gt.Id} className="menu__btn" onClick={() => this.handleGameType(gt)}>
+        let buttonArray = [];
+        let typeButtons = this.state.allOptions.GameTypes.map(gt => (
+            <button key={gt.Id} className="menu__btn" name="type" value={gt} onClick={e => this.handleOptionSelected(e, gt)}>
                 {`${gt.Name} Games`}
             </button>
         ));
-        var returnButton = 
-            <button key="999" id="host" className="menu__btn" onClick={e => this.handleReturn(e)}>
+        let returnButton = 
+            <button key="999" name="host" className="menu__btn" onClick={e => this.handleReturn(e)}>
                 Return
             </button>
         buttonArray.push(typeButtons, returnButton);
@@ -110,16 +94,16 @@ export default class Menu extends Component {
     }
 
     gameVariationButtons() { 
-        var buttonArray = [];
-        var variationButtons = this.state.availableOptions.GameVariations
+        let buttonArray = [];
+        let variationButtons = this.state.allOptions.GameVariations
             .filter((gv) => { return gv.GameTypeId === this.state.selectedOptions.type.Id })
             .map(gv => (
-                <button key={gv.Id} className="menu__btn" onClick={() => this.handleGameVariation(gv)}>
+                <button key={gv.Id} className="menu__btn" name="variation" onClick={e => this.handleOptionSelected(e, gv)}>
                     {gv.Name}
                 </button>
             ));
-        var returnButton = 
-            <button key="999" id="type" className="menu__btn" onClick={e => this.handleReturn(e)}>
+        let returnButton = 
+            <button key="999" name="type" className="menu__btn" onClick={e => this.handleReturn(e)}>
                 Return
             </button>
 
@@ -127,40 +111,44 @@ export default class Menu extends Component {
         return buttonArray;
     }
 
+    inOutButtons() {
+        let buttonArray = [];
+        let inOutBtns = this.state.allOptions.GameSettings
+            .filter((gs) => { return gs.GameTypeId === this.state.selectedOptions.type.Id })
+            .map(gs => (
+                <button key={gs.Id} className="menu__btn" name="settings" onClick={e => this.handleOptionSelected(e, gs)}>
+                    {gs.Name}
+                </button>
+            ));
+        let returnButton = 
+            <button key="999" name="variation" className="menu__btn" onClick={e => this.handleReturn(e)}>
+                Return
+            </button>
+        buttonArray.push(inOutBtns, returnButton);
+        return buttonArray;
+    }
+
     render() {
         let buttons;
+
         // Game host buttons
         if (this.state.selectedOptions.host === null) {
             buttons = this.gameHostButtons();
         }
-        else if (this.state.selectedOptions.host === "Lobby") {
-            return (
-                <Lobby user={this.props.user}></Lobby>
-            );
-        }
+
         // Game type buttons
-        else if (this.state.selectedOptions.type === null && this.state.availableOptions !== null) {
+        else if (this.state.selectedOptions.type === null && this.state.allOptions !== null) {
             buttons = this.gameTypeButtons();
         }
+
         // Game variations
-        else if (this.state.selectedOptions.variation === null && this.state.availableOptions !== null) {
+        else if (this.state.selectedOptions.variation === null && this.state.allOptions !== null) {
             buttons = this.gameVariationButtons();
         }
+
         // 01 options
-        else if (this.state.selectedOptions.inOut === null && this.state.availableOptions !== null) {
-            buttons = (
-                <div className="btn-container">
-                    <button value="openOpen" className="menu__btn" onClick={e => this.handleInOut(e)}>
-                        Open In/Open Out
-                    </button>
-                    <button value="openDouble" className="menu__btn" onClick={e => this.handleInOut(e)}>
-                        Open In/Double Out
-                    </button>
-                    <button id="variation" className="menu__btn" onClick={e => this.handleReturn(e)}>
-                        Return
-                    </button>
-                </div>
-            );
+        else if (this.state.selectedOptions.settings === null && this.state.allOptions !== null) {
+            buttons = this.inOutButtons();
         }
 
         return (

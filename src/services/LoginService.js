@@ -15,9 +15,8 @@ export default class LoginService {
             headers: { "Content-Type": "application/json" }
         });
         
-        if (!response.ok)
-            throw new Error("Incorrect email or password");
-        
+        if (!response.ok) throw new Error("Incorrect email or password");
+
         let user = await response.json();
         return user;
     }
@@ -33,6 +32,9 @@ export default class LoginService {
             body: JSON.stringify({ email, username, password }),
             headers: { "Content-Type": "application/json" }
         });
+
+        if (!response.ok) throw new Error("Registration Failed");
+
         let user = await response.json();
         return user;
     }
