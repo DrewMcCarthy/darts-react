@@ -5,6 +5,7 @@ export type GameType = {
 
 export type GameVariation = {
     id: number,
+    gameTypeId: number,
     name: string,
     startScore: number
 }
@@ -17,10 +18,17 @@ export type GameSetting = {
 }
 
 export type GameOptions = {
-    type: GameType,
-    variation: GameVariation,
-    setting: GameSetting
-}
+    [key: string] : any;
+    gameType: GameType | null;
+    gameVariation: GameVariation | null;
+    gameSetting: GameSetting | null;
+};
+
+export type AllOptions = {
+    gameTypes: Array<GameType> | null;
+    gameVariations: Array<GameVariation> | null;
+    gameSettings: Array<GameSetting> | null;
+};
 
 export type Dart = {
     mark: number,
@@ -32,7 +40,7 @@ export type Dart = {
 export type Player = {
     id: number,
     name: string,
-    score: number,
+    score: number | null | undefined,
     gameDarts: Array<Dart>
 }
 
@@ -49,8 +57,8 @@ export type User = {
 }
 
 export type GameState = {
-    user: User,
-    gameOptions: GameOptions,
+    gameId: number,
+    gameOptions: GameOptions | null,
     activePlayer: ActivePlayer,
     players: Array<Player>,
     turnScore: number,
@@ -59,7 +67,8 @@ export type GameState = {
     isTransitioning: boolean,
     isBust: boolean,
     isWinner: boolean,
-    isTurnEnd: boolean
+    isTurnEnd: boolean,
+    isWaitingForPlayers: boolean
 }
 
 export type PlayerAction = {
@@ -71,4 +80,7 @@ export type PlayerAction = {
 
 export enum PlayerActionSource { local, remote };
 export enum PlayerActionType { throwDart, endTurn, leaveGame };
-
+export enum GameStatuses { StartedLocal, StartedOnline, Joined };
+export enum GameScreens { Login, Menu, Lobby, Game };
+// Assign ID from public.game_settings
+export enum InOutSetting { OpenOpen = 1, OpenDouble = 2, DoubleDouble = 3 };

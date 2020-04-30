@@ -137,7 +137,7 @@ let setWinner = (turnScore: number): boolean => {
     return turnScore === 0 ? true : false;
 }
 
-let setTurnEnd = (turnDarts: Array<Dart> = null, forceTurnEnd: boolean = false): boolean => {
+let setTurnEnd = (turnDarts: Array<Dart> = [], forceTurnEnd: boolean = false): boolean => {
     if (turnDarts?.length === 3 || forceTurnEnd ) {
         return true;
     }
@@ -159,7 +159,7 @@ let setTransitionLabel = (players: Array<Player>, activePlayer: ActivePlayer, is
     let playerName = players[activePlayer.index].name;
     let nextIndex = nextPlayerIndex(players, activePlayer);
     let nextPlayerName = players[nextIndex].name;
-    let transitionLabel;
+    let transitionLabel: string = "";
 
     if (isBust) {
         transitionLabel = `${playerName} Busted!
