@@ -9,29 +9,18 @@ import DebugThrowDart from '../debug_components/DebugThrowDart';
 import GameService from '../services/GameService';
 import * as Models from '../models/gameModels';
 import { handlePlayerAction } from '../libs/game_rules/zeroOne';
+import { ServerComm } from '../libs/signalR/serverComm';
+import GameSetupService from '../services/GameSetupService';
 
-// interface IGameController {
-//     user: Models.User,
-//     serverComm: any,
-//     gameId: number,
-//     gameStatus: string,
-//     gameOptions: Models.GameOptions,
-//     gameService: any,
-//     dartSound: HTMLAudioElement
-// }
 interface GameControllerProps {
     user: Models.User;
-    serverComm: any,
+    serverComm: ServerComm,
     gameId: number,
     gameStatus: Models.GameStatuses | null,
     gameOptions: Models.GameOptions | null
 }
 
-interface GameControllerState {
-    gameState: Models.GameState
-}
-
-export default class GameController extends Component<GameControllerProps, GameControllerState> {
+export default class GameController extends Component<GameControllerProps, Models.GameState> {
     user: Models.User;
     serverComm: any;
     gameId: number;
@@ -39,6 +28,7 @@ export default class GameController extends Component<GameControllerProps, GameC
     gameOptions: Models.GameOptions | null;
     gameService: GameService;
     dartSound: HTMLAudioElement;
+    gameSetupService: GameSetupService;
 
     constructor(props: GameControllerProps) {
         super(props);
@@ -50,10 +40,11 @@ export default class GameController extends Component<GameControllerProps, GameC
         this.gameOptions = this.props.gameOptions;
         this.dartSound = new Audio(process.env.PUBLIC_URL + "/audio/dartSound.mp3");
         this.gameService = new GameService();
+        this.gameSetupService = new GameSetupService(this.gameService);
 
         this.handlePlayerAction = this.handlePlayerAction.bind(this);
         this.handlePlayerActionSent = this.handlePlayerActionSent.bind(this);
-        this.initPlayers = this.initPlayers.bind(this);
+        // this.initPlayers = this.initPlayers.bind(this);
 
         this.handleServerMessage = this.handleServerMessage.bind(this);
         this.handlePlayerJoined = this.handlePlayerJoined.bind(this);
@@ -64,93 +55,35 @@ export default class GameController extends Component<GameControllerProps, GameC
 
 
         this.state = {
-            gameState: {
-                gameId: 0,
-                gameOptions: this.gameOptions,
-                activePlayer: {
-                    id: 0,
-                    index: 0
-                },
-                players: [],
-                turnScore: 0,
-                turnDarts: [],
-                transitionLabel: "",
-                isTransitioning: false,
-                isBust: false,
-                isWinner: false,
-                isTurnEnd: false,
-                isWaitingForPlayers: true
-            }
+            gameId: this.props.gameId,
+            gameOptions: this.gameOptions,
+            activePlayer: {
+                id: 0,
+                index: 0
+            },
+            players: [],
+            turnScore: 0,
+            turnDarts: [],
+            transitionLabel: "",
+            isTransitioning: false,
+            isBust: false,
+            isWinner: false,
+            isTurnEnd: false,
+            isWaitingForPlayers: true
         };
     }
 
-    componentDidMount() {
-        let gameState = { ...this.state.gameState };
-        if (this.gameStatus === Models.GameStatuses.StartedOnline) {
-            this.sendGameToServer();
-            let turnScore = this.state.gameState.gameOptions?.gameVariation?.startScore;
-            let creator: Models.Player = {
-                id: this.user.id,
-                name: this.user.username,
-                score: this.state.gameState.gameOptions?.gameVariation?.startScore,
-                gameDarts: []
-            };
-            let players = [creator];
-            gameState.players = players;
-            gameState.turnScore = turnScore ? turnScore : 0;
-            this.setState({ gameState });
-        }
-        else if (this.gameStatus === Models.GameStatuses.Joined) {
-            this.initPlayers();
-        }
-        else if (this.gameStatus === Models.GameStatuses.StartedLocal) {
-            let turnScore = this.state.gameState.gameOptions?.gameVariation?.startScore;
-            let playerOne = {
-                id: this.user.id,
-                name: this.user.username,
-                score: this.state.gameState.gameOptions?.gameVariation?.startScore,
-                gameDarts: []
-            };
-            let playerTwo = {
-                id: 99,
-                name: "Guest",
-                score: this.state.gameState.gameOptions?.gameVariation?.startScore,
-                gameDarts: []
-            };
-            let players = [playerOne, playerTwo];
-            gameState.players = players;
-            gameState.activePlayer = { index: 0, id: playerOne.id };
-            gameState.turnScore = turnScore ? turnScore : 0;
-            gameState.isWaitingForPlayers = false;
-            this.setState({ gameState });
-        }
+    async componentDidMount() {
+        await this.initGame();
     }
 
-    async initPlayers() {
-        if (this.gameStatus === Models.GameStatuses.Joined) {
-            try {
-                let gameInfo = await this.gameService.getGameInfo(this.user, this.gameId);
-                if (gameInfo) {
-                    let creator = {
-                        id: gameInfo.CreatedByUserId,
-                        name: gameInfo.CreatedBy,
-                        score: gameInfo.StartScore,
-                        gameDarts: []
-                    };
-                    let joiner = { id: this.user.id, name: this.user.username, score: gameInfo.StartScore, gameDarts: [] };
-                    let players = [creator, joiner];
-                    let gameState = { ...this.state.gameState };
-                    gameState.players = players;
-                    gameState.activePlayer = { index: 0, id: creator.id };
-                    gameState.turnScore = gameInfo.StartScore;
-                    gameState.isWaitingForPlayers = false;
-                    gameState.gameId = this.gameId;
-                    this.setState({ gameState });
-                }
-            } catch (error) {
-                alert (error);
+    initGame = async () => {
+        let initState = await this.gameSetupService.initGame(this.state, this.gameStatus, this.user);
+        this.setState({ ...initState }, () => {
+            if (this.gameStatus === Models.GameStatuses.StartedOnline) {
+                this.sendGameToServer();
             }
-        }
+        });
     }
 
     handleServerMessage(receivedMessage: string) {
@@ -160,14 +93,14 @@ export default class GameController extends Component<GameControllerProps, GameC
     // If hosting, this is called when other players join
     handlePlayerJoined(userId: number, username: string) {
         console.log(`Player Joined - ID:${userId} - Name:${username}`);
-        let players = [...this.state.gameState.players];
-        let joiner = { id: userId, name: username, score: this.state.gameState.gameOptions?.gameVariation?.startScore, gameDarts: [] };
+        let players = [...this.state.players];
+        let joiner = { id: userId, name: username, score: this.state.gameOptions?.gameVariation?.startScore, gameDarts: [] };
         players.push(joiner);
-        let gameState = { ...this.state.gameState };
+        let gameState = { ...this.state };
         gameState.players = players;
         gameState.activePlayer = { index: 0, id: this.user.id };
         gameState.isWaitingForPlayers = false;
-        this.setState({ gameState });
+        this.setState({ ...gameState });
     }
 
     // If hosting
@@ -175,8 +108,8 @@ export default class GameController extends Component<GameControllerProps, GameC
         if (this.gameStatus !== Models.GameStatuses.StartedOnline) return;
 
         let data = {
-            gameTypeId: this.state.gameState.gameOptions?.gameVariation?.gameTypeId,
-            gameVariationId: this.state.gameState.gameOptions?.gameVariation?.id,
+            gameTypeId: this.state.gameOptions?.gameVariation?.gameTypeId,
+            gameVariationId: this.state.gameOptions?.gameVariation?.id,
             createdByUserId: this.user.id,
             status: "Lobby",
         };
@@ -184,9 +117,9 @@ export default class GameController extends Component<GameControllerProps, GameC
         try {
             let gameId = await this.gameService.postNewGame(this.user, data);
             if (gameId) {
-                let gameState = { ...this.state.gameState };
+                let gameState = { ...this.state };
                 gameState.gameId = gameId;
-                this.setState({ gameState });
+                this.setState({ ...gameState });
                 this.serverComm.addGameToLobby(JSON.stringify(data));
                 this.serverComm.joinGame(gameId.toString(), this.user.id.toString());
             }
@@ -200,9 +133,9 @@ export default class GameController extends Component<GameControllerProps, GameC
     handlePlayerAction(playerAction: Models.PlayerAction, actionSource: Models.PlayerActionSource = Models.PlayerActionSource.local) {
         console.log("playerAction: " + JSON.stringify(playerAction));
 
-        if (actionSource === Models.PlayerActionSource.local && (this.state.gameState.activePlayer.id !== this.user.id || this.state.gameState.isTransitioning)) {
+        if (actionSource === Models.PlayerActionSource.local && (this.state.activePlayer.id !== this.user.id || this.state.isTransitioning)) {
             return;
-        } else if (actionSource === Models.PlayerActionSource.remote && this.state.gameState.activePlayer.id != playerAction.player.id) {
+        } else if (actionSource === Models.PlayerActionSource.remote && this.state.activePlayer.id != playerAction.player.id) {
                    return;
                }
         
@@ -219,7 +152,7 @@ export default class GameController extends Component<GameControllerProps, GameC
 
         // Only send to server if it wasn't an action received from the server
         if (actionSource === Models.PlayerActionSource.local) {
-            this.serverComm.sendPlayerAction(this.state.gameState.gameId, JSON.stringify(playerAction));
+            this.serverComm.sendPlayerAction(this.state.gameId, JSON.stringify(playerAction));
         }
     }
 
@@ -235,10 +168,10 @@ export default class GameController extends Component<GameControllerProps, GameC
         this.addRoundDart(dart);
         let dartValue = dart.mark * dart.multiplier;
         let newTurnScore;
-        let gameState = { ...this.state.gameState };
+        let gameState = { ...this.state };
 
-        if (this.state.gameState.turnScore) {
-            newTurnScore = this.state.gameState.turnScore - dartValue;
+        if (this.state.turnScore) {
+            newTurnScore = this.state.turnScore - dartValue;
             gameState.turnScore = newTurnScore;
         }
 
@@ -249,13 +182,13 @@ export default class GameController extends Component<GameControllerProps, GameC
             }
             // Check for win condition
             else if (newTurnScore === 0) {
-                this.setState({ gameState }, () => {
+                this.setState({ ...gameState }, () => {
                     this.handleWinGame();
                 });
             }
             // End turn
             else {
-                this.setState({ gameState }, () => {
+                this.setState({ ...gameState }, () => {
                     this.handleEndTurn(false);
                 });
             }
@@ -263,7 +196,7 @@ export default class GameController extends Component<GameControllerProps, GameC
     }
 
     addRoundDart(dart: any) {
-        throw new Error("Method not implemented.");
+        this.state.players[this.state.activePlayer.index].gameDarts.push(dart);
     }
 
     handleBust() {
@@ -278,7 +211,7 @@ export default class GameController extends Component<GameControllerProps, GameC
             this.changeActivePlayer();
             this.setState({
                 isTransitioning: false,
-                turnScore: this.state.gameState.players[this.state.gameState.activePlayer.index].score,
+                turnScore: this.state.players[this.state.activePlayer.index].score,
                 turnDarts: [],
             });
         }, 3000);
@@ -289,12 +222,10 @@ export default class GameController extends Component<GameControllerProps, GameC
         throw new Error("Method not implemented.");
     }
 
-
-
     handleWinGame() {
         throw new Error("Method not implemented.");
         /*
-        let playerName = this.state.gameState.players[this.state.gameState.activePlayer.index].name;
+        let playerName = this.state.players[this.state.activePlayer.index].name;
         this.setState({
             transitionLabel: `${playerName} Wins!!!`,
             isTransitioning: true
@@ -304,25 +235,25 @@ export default class GameController extends Component<GameControllerProps, GameC
 
     handleEndTurn(force: boolean) {
         /*
-        if (force || this.state.gameState.turnDarts.length === 3) {
+        if (force || this.state.turnDarts.length === 3) {
             
-            let nextPlayerName = this.state.gameState.players[this.nextPlayerIndex()].name;
+            let nextPlayerName = this.state.players[this.nextPlayerIndex()].name;
             this.setState({
                 transitionLabel: `End of Turn - ${nextPlayerName} Is Up`,
                 transitioning: true
             });
 
-            let newPlayers = this.state.gameState.players;
-            let newActivePlayer = newPlayers[this.state.gameState.activePlayer.index];
-            newActivePlayer.score = this.state.gameState.turnScore;
-            newPlayers[this.state.gameState.activePlayer.index] = newActivePlayer;
+            let newPlayers = this.state.players;
+            let newActivePlayer = newPlayers[this.state.activePlayer.index];
+            newActivePlayer.score = this.state.turnScore;
+            newPlayers[this.state.activePlayer.index] = newActivePlayer;
 
             setTimeout(() => {
                 this.changeActivePlayer();
                 this.setState({
                     isTransitioning: false,
                     turnDarts: [],
-                    turnScore: this.state.gameState.players[this.state.gameState.activePlayer.index].score,
+                    turnScore: this.state.players[this.state.activePlayer.index].score,
                     players: newPlayers
                 });
             }, 3000);
@@ -331,7 +262,7 @@ export default class GameController extends Component<GameControllerProps, GameC
     }
 
     render() {
-        if (this.state.gameState.isWaitingForPlayers) {
+        if (this.state.isWaitingForPlayers) {
             return <div className="game-controller">WAITING FOR PLAYER TO JOIN</div>;
         } else {
             return (
@@ -340,21 +271,21 @@ export default class GameController extends Component<GameControllerProps, GameC
                         <DebugThrowDart
                             label="Single 10"
                             value="35-45"
-                            user={this.user}
+                            player={this.state.players[this.state.activePlayer.index]}
                             handlePlayerAction={(playerAction: Models.PlayerAction) =>
                                 this.handlePlayerAction(playerAction)
                             }></DebugThrowDart>
                         <DebugThrowDart
                             label="Triple 20"
                             value="39-28"
-                            user={this.user}
+                            player={this.state.players[this.state.activePlayer.index]}
                             handlePlayerAction={(playerAction: Models.PlayerAction) =>
                                 this.handlePlayerAction(playerAction)
                             }></DebugThrowDart>
                         <DebugThrowDart
                             label="Triple 7"
                             value="39-25"
-                            user={this.user}
+                            player={this.state.players[this.state.activePlayer.index]}
                             handlePlayerAction={(playerAction: Models.PlayerAction) =>
                                 this.handlePlayerAction(playerAction)
                             }></DebugThrowDart>
@@ -366,20 +297,20 @@ export default class GameController extends Component<GameControllerProps, GameC
                     </div>
 
                     <div className="main-area">
-                        {this.state.gameState.isTransitioning && <Transition label={this.state.gameState.transitionLabel}></Transition>}
+                        {this.state.isTransitioning && <Transition label={this.state.transitionLabel}></Transition>}
 
-                        {this.state.gameState.players[this.state.gameState.activePlayer.index] && (
+                        {this.state.players[this.state.activePlayer.index] && (
                             <CenterScore
-                                name={this.state.gameState.players[this.state.gameState.activePlayer.index].name}
-                                score={this.state.gameState.turnScore}></CenterScore>
+                                name={this.state.players[this.state.activePlayer.index].name}
+                                score={this.state.turnScore}></CenterScore>
                         )}
                     </div>
 
                     <div className="user-area">
-                        {this.state.gameState.players && (
+                        {this.state.players && (
                             <PlayerScore
-                                name={this.state.gameState.players[0].name}
-                                score={this.state.gameState.players[0].score}></PlayerScore>
+                                name={this.state.players[0].name}
+                                score={this.state.players[0].score}></PlayerScore>
                         )}
 
                         <EndTurnButton
@@ -388,17 +319,17 @@ export default class GameController extends Component<GameControllerProps, GameC
                                 this.handlePlayerAction(playerAction)
                             }></EndTurnButton>
 
-                        {this.state.gameState.players && (
+                        {this.state.players && (
                             <PlayerScore
-                                name={this.state.gameState.players[1].name}
-                                score={this.state.gameState.players[1].score}></PlayerScore>
+                                name={this.state.players[1].name}
+                                score={this.state.players[1].score}></PlayerScore>
                         )}
                     </div>
 
                     <div className="footer">
-                        <DartIndicator dartSeq="0" turnDarts={this.state.gameState.turnDarts}></DartIndicator>
-                        <DartIndicator dartSeq="1" turnDarts={this.state.gameState.turnDarts}></DartIndicator>
-                        <DartIndicator dartSeq="2" turnDarts={this.state.gameState.turnDarts}></DartIndicator>
+                        <DartIndicator dartSeq="0" turnDarts={this.state.turnDarts}></DartIndicator>
+                        <DartIndicator dartSeq="1" turnDarts={this.state.turnDarts}></DartIndicator>
+                        <DartIndicator dartSeq="2" turnDarts={this.state.turnDarts}></DartIndicator>
                     </div>
                 </div>
             );

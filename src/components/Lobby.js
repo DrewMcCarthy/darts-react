@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './Lobby.scss';
 import LobbyService from '../services/LobbyService';
-
+import * as Models from '../models/gameModels';
 
 export default class Lobby extends Component {
     constructor(props) {
@@ -61,19 +61,19 @@ export default class Lobby extends Component {
             return (
                 <div className="lobby-container">
                     <div className="lobby-games">
-                        <button key="999" name="return" className="lobby__btn" onClick={() => this.appSetScreen("Menu")}>
+                        <button key="999" name="return" className="lobby__btn" onClick={() => this.appSetScreen(Models.GameScreens.Menu)}>
                             Return
                         </button>
                         
                         {this.state.games.map((g, i) => (
-                            <div key={g.Id} className="lobby-game" onClick={() => this.joinGame(g.Id)}>
-                                <input name="gameId" type="hidden" value={g.Id}></input>
-                                <p className="game-detail">{`Type: ${g.GameType}`}</p>
-                                <span className="game-detail">{`Variation: ${g.GameVariation}`}</span>
-                                <p className="game-detail">{`Hosted By: ${g.CreatedBy}`}</p>
+                            <div key={g.id} className="lobby-game" onClick={() => this.joinGame(g.id)}>
+                                <input name="gameId" type="hidden" value={g.id}></input>
+                                <p className="game-detail">{`Type: ${g.gameType}`}</p>
+                                <span className="game-detail">{`Variation: ${g.gameVariation}`}</span>
+                                <p className="game-detail">{`Hosted By: ${g.createdBy}`}</p>
                                 <p className="game-detail">
                                     {`Created ${Math.floor(
-                                        (Date.now() - new Date(g.CreatedTimestamp)) / 1000 / 60
+                                        (Date.now() - new Date(g.createdTimestamp)) / 1000 / 60
                                     )} minutes ago`}
                                 </p>
                             </div>

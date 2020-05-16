@@ -1,24 +1,33 @@
-import React, { Component } from 'react';
+import React, { Component, MouseEvent } from 'react';
 import './DebugThrowDart.scss';
 import dartMap from "../libs/game_rules/dartMap";
+import * as Models from '../models/gameModels';
 
-export default class DebugThrowDart extends Component {
-    constructor(props) {
+interface DebugThrowDartProps {
+    label: string,
+    value: string,
+    player: Models.Player,
+    handlePlayerAction: Function
+}
+
+export default class DebugThrowDart extends Component<DebugThrowDartProps,any> {
+    constructor(props: DebugThrowDartProps) {
         super(props);
         this.handleClick = this.handleClick.bind(this);
     }
 
-    handleClick(event) {
+    handleClick(event: MouseEvent) {
         let boardCoords = this.props.value;
 
         console.log("boardCoords: " + boardCoords);
         console.log("dartMap: " + dartMap(boardCoords).mark + " " + dartMap(boardCoords).multiplier);
 
-        let dart = dartMap(boardCoords);
-        let playerAction = {
-            player: { id: this.props.user.Id, name: this.props.user.Username },
-            type: "throwDart",
-            action: { dart: dart }
+        let dart: Models.Dart = dartMap(boardCoords);
+        let playerAction: Models.PlayerAction = {
+            player: this.props.player,
+            source: Models.PlayerActionSource.local,
+            type: Models.PlayerActionType.throwDart,
+            dart: dart
         };
         console.log("playerAction: " + JSON.stringify(playerAction));
         this.props.handlePlayerAction(playerAction);

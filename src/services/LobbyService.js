@@ -7,7 +7,7 @@ export default class LobbyService {
             method: "get",
             headers: { 
                 "Content-Type": "application/json",
-                "Authorization": "Bearer " + user.JwtToken
+                "Authorization": "Bearer " + user.jwtToken
             }
         });
 

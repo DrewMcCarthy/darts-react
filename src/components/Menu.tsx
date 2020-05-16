@@ -108,7 +108,7 @@ export default class Menu extends Component<MenuProps, MenuState> {
     gameStatusButtons() {
         return (
             <div className="btn-container">
-                <button className="menu__btn" name="gameStatus" value="Lobby" onClick={() => this.appSetScreen("Lobby")}>
+                <button className="menu__btn" name="gameStatus" value="Lobby" onClick={() => this.appSetScreen(Models.GameScreens.Lobby)}>
                     Join Online
                 </button>
                 <button

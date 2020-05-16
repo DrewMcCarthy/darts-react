@@ -75,7 +75,7 @@ export default class BoardController extends Component {
 
         let dart = dartMap(boardCoords);
         let playerAction = {
-            player: { id: this.props.user.Id, name: this.props.user.Username },
+            player: { id: this.props.user.id, name: this.props.user.username },
             type: "throwDart",
             action: {dart: dart}
         }

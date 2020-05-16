@@ -7,7 +7,7 @@ export default class GameService {
             method: "get",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: "Bearer " + user.JwtToken,
+                Authorization: "Bearer " + user.jwtToken,
             },
         });
 
@@ -23,7 +23,7 @@ export default class GameService {
             method: "post",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: "Bearer " + user.JwtToken,
+                Authorization: "Bearer " + user.jwtToken,
             },
             body: JSON.stringify(data),
         });
