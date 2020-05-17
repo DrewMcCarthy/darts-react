@@ -8,7 +8,7 @@ import Transition from './Transition';
 import DebugThrowDart from '../debug_components/DebugThrowDart';
 import GameService from '../services/GameService';
 import * as Models from '../models/gameModels';
-import { handlePlayerAction } from '../libs/game_rules/zeroOne';
+import { zeroOnePlayerAction } from '../libs/game_rules/zeroOne';
 import { ServerComm } from '../libs/signalR/serverComm';
 import GameSetupService from '../services/GameSetupService';
 
@@ -58,7 +58,7 @@ export default class GameController extends Component<GameControllerProps, Model
             gameId: this.props.gameId,
             gameOptions: this.gameOptions,
             activePlayer: {
-                id: 0,
+                userId: 0,
                 index: 0
             },
             players: [],
@@ -98,7 +98,7 @@ export default class GameController extends Component<GameControllerProps, Model
         players.push(joiner);
         let gameState = { ...this.state };
         gameState.players = players;
-        gameState.activePlayer = { index: 0, id: this.user.id };
+        gameState.activePlayer = { index: 0, userId: this.user.id };
         gameState.isWaitingForPlayers = false;
         this.setState({ ...gameState });
     }
@@ -121,45 +121,42 @@ export default class GameController extends Component<GameControllerProps, Model
                 gameState.gameId = gameId;
                 this.setState({ ...gameState });
                 this.serverComm.addGameToLobby(JSON.stringify(data));
-                this.serverComm.joinGame(gameId.toString(), this.user.id.toString());
+                this.serverComm.joinGame(gameId, this.user.id);
             }
         } catch (error) {
             alert (error);
         } 
     }
 
-
-    
-    handlePlayerAction(playerAction: Models.PlayerAction, actionSource: Models.PlayerActionSource = Models.PlayerActionSource.local) {
+    handlePlayerAction(playerAction: Models.PlayerAction) {
         console.log("playerAction: " + JSON.stringify(playerAction));
 
-        if (actionSource === Models.PlayerActionSource.local && (this.state.activePlayer.id !== this.user.id || this.state.isTransitioning)) {
-            return;
-        } else if (actionSource === Models.PlayerActionSource.remote && this.state.activePlayer.id != playerAction.player.id) {
-                   return;
-               }
         
-        if (playerAction.type === Models.PlayerActionType.endTurn) {
-            this.handleEndTurn(true);
-        }
+        if (playerAction.player.id === this.state.activePlayer.userId) {
+            // Only send to server if it wasn't an action received from the server
+            if (playerAction.source === Models.PlayerActionSource.local) {
+                this.serverComm.sendPlayerAction(this.state.gameId, JSON.stringify(playerAction));
+            }
 
-        if (playerAction.type === Models.PlayerActionType.throwDart) {
-            this.handleThrowDart(playerAction.dart);
-            // Moved handleEndTurn to a callback inside setState inside handleThrowDart
-            // because the async setState wasn't updating state in time to get new values
-            // this.handleEndTurn(false);
-        }
-
-        // Only send to server if it wasn't an action received from the server
-        if (actionSource === Models.PlayerActionSource.local) {
-            this.serverComm.sendPlayerAction(this.state.gameId, JSON.stringify(playerAction));
+            let newGameState = zeroOnePlayerAction(this.state, playerAction);
+            this.setState({ ...newGameState }, () => {
+                if (this.state.isTransitioning) {
+                    let turnScore = this.state?.players[this.state?.activePlayer?.index]?.score;
+                    setTimeout(() => {
+                        this.setState({ isTransitioning: false, turnScore: turnScore ?? this.state.turnScore })
+                    }, 3000);
+                }
+            });
         }
     }
 
     handlePlayerActionSent(gameId: any, playerAction: string) {
         let objPlayerAction: Models.PlayerAction = JSON.parse(playerAction);
         console.log("game handlePlayerActionSent: " + JSON.stringify(objPlayerAction));
-        this.handlePlayerAction(objPlayerAction, Models.PlayerActionSource.remote);
+
+        // Change action source to remote before processing
+        objPlayerAction.source = Models.PlayerActionSource.remote;
+        this.handlePlayerAction(objPlayerAction);
     }
 
     handleThrowDart(dart: Models.Dart) {
@@ -271,21 +268,24 @@ export default class GameController extends Component<GameControllerProps, Model
                         <DebugThrowDart
                             label="Single 10"
                             value="35-45"
-                            player={this.state.players[this.state.activePlayer.index]}
+                            user={this.user}
+                            players={this.state.players}
                             handlePlayerAction={(playerAction: Models.PlayerAction) =>
                                 this.handlePlayerAction(playerAction)
                             }></DebugThrowDart>
                         <DebugThrowDart
                             label="Triple 20"
                             value="39-28"
-                            player={this.state.players[this.state.activePlayer.index]}
+                            user={this.user}
+                            players={this.state.players}
                             handlePlayerAction={(playerAction: Models.PlayerAction) =>
                                 this.handlePlayerAction(playerAction)
                             }></DebugThrowDart>
                         <DebugThrowDart
                             label="Triple 7"
                             value="39-25"
-                            player={this.state.players[this.state.activePlayer.index]}
+                            user={this.user}
+                            players={this.state.players}
                             handlePlayerAction={(playerAction: Models.PlayerAction) =>
                                 this.handlePlayerAction(playerAction)
                             }></DebugThrowDart>

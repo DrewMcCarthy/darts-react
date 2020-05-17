@@ -6,7 +6,8 @@ import * as Models from '../models/gameModels';
 interface DebugThrowDartProps {
     label: string,
     value: string,
-    player: Models.Player,
+    user: Models.User,
+    players: Array<Models.Player>,
     handlePlayerAction: Function
 }
 
@@ -22,9 +23,11 @@ export default class DebugThrowDart extends Component<DebugThrowDartProps,any> {
         console.log("boardCoords: " + boardCoords);
         console.log("dartMap: " + dartMap(boardCoords).mark + " " + dartMap(boardCoords).multiplier);
 
+        let playerIndex = this.props.players.findIndex(p => p.id === this.props.user.id);
+        let playerThrowing = this.props.players[playerIndex];
         let dart: Models.Dart = dartMap(boardCoords);
         let playerAction: Models.PlayerAction = {
-            player: this.props.player,
+            player: playerThrowing,
             source: Models.PlayerActionSource.local,
             type: Models.PlayerActionType.throwDart,
             dart: dart

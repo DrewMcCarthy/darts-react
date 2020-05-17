@@ -45,9 +45,9 @@ export type Player = {
 }
 
 export type ActivePlayer = {
-    id: number,
-    index: number
-}
+    userId: number;
+    index: number;
+};
 
 export type User = {
     id: number,

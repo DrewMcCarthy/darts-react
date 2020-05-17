@@ -52,7 +52,7 @@ export default class Lobby extends Component {
     }
 
     async joinGame(gameId) {
-        this.serverComm.joinGame(gameId.toString(), this.user.id.toString(), this.user.username);
+        this.serverComm.joinGame(gameId, this.user.id, this.user.username);
         this.appJoinGame(gameId);
     }
 

@@ -42,7 +42,7 @@ export default class GameSetupService {
                     };
                     let players = [creator, joiner];
                     this.gameState.players = players;
-                    this.gameState.activePlayer = { index: 0, id: creator.id };
+                    this.gameState.activePlayer = { index: 0, userId: creator.id };
                     this.gameState.turnScore = gameInfo.startScore;
                     this.gameState.isWaitingForPlayers = false;
                 }
@@ -78,7 +78,7 @@ export default class GameSetupService {
             };
             let players = [playerOne, playerTwo];
             this.gameState.players = players;
-            this.gameState.activePlayer = { index: 0, id: playerOne.id };
+            this.gameState.activePlayer = { index: 0, userId: playerOne.id };
             this.gameState.turnScore = turnScore ? turnScore : 0;
             this.gameState.isWaitingForPlayers = false;
         };

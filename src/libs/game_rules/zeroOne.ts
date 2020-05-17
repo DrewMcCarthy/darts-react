@@ -8,7 +8,7 @@
 
 import { GameState, PlayerAction, PlayerActionSource, PlayerActionType, Dart, Player, ActivePlayer } from "../../models/gameModels";
 
-export let handlePlayerAction = (gameState: GameState, playerAction: PlayerAction): GameState => {
+export let zeroOnePlayerAction = (gameState: GameState, playerAction: PlayerAction): GameState => {
     let newGameState: GameState = {...gameState};
 
     // Process local player action
@@ -16,7 +16,7 @@ export let handlePlayerAction = (gameState: GameState, playerAction: PlayerActio
         if (newGameState.isTransitioning) {
             return newGameState;
         }
-        else {
+        else { // Process action types
             if (playerAction.type === PlayerActionType.throwDart) {
                 newGameState = handleThrowDart(newGameState, playerAction);
             } else if (playerAction.type === PlayerActionType.endTurn) {
@@ -26,15 +26,15 @@ export let handlePlayerAction = (gameState: GameState, playerAction: PlayerActio
     }
     // Process remote player action
     else if (playerAction.source === PlayerActionSource.remote) {
-        if (newGameState.activePlayer.id !== playerAction.player.id) {
+        if (newGameState.activePlayer.userId !== playerAction.player.id) {
             return newGameState;
-        }
-        else {
+        } else {
+            // Process action types
             if (playerAction.type === PlayerActionType.throwDart) {
                 newGameState = handleThrowDart(newGameState, playerAction);
             } else if (playerAction.type === PlayerActionType.endTurn) {
                 newGameState = handleEndTurn(newGameState, playerAction);
-            } 
+            }
             // else if (playerAction.type === PlayerActionType.leaveGame) {
             //     // send players' gameDarts to server
             //     // send result info to server
@@ -50,7 +50,9 @@ let handleThrowDart = (newGameState: GameState, playerAction: PlayerAction): Gam
     playerAction.dart = setDartValue(playerAction.dart);
     // Add new dart to the ones thrown this round
     newGameState.turnDarts.push(playerAction.dart);
+    // let tempScore = newGameState.turnScore - playerAction.dart.value;
     newGameState.turnScore = newGameState.turnScore - playerAction.dart.value;
+    // newGameState.turnScore = setTurnScore(newGameState.players, newGameState.activePlayer, newGameState.isTurnEnd, newGameState.turnScore);
     newGameState.isBust = setBust(newGameState.turnScore);
     newGameState.isWinner = setWinner(newGameState.turnScore);
     newGameState.isTurnEnd = setTurnEnd(newGameState.turnDarts, newGameState.isBust);
@@ -77,6 +79,9 @@ let handleThrowDart = (newGameState: GameState, playerAction: PlayerAction): Gam
     );
     newGameState.activePlayer = setActivePlayer(newGameState.players, newGameState.activePlayer, newGameState.isTurnEnd);
 
+    if (newGameState.isTurnEnd || newGameState.isBust) {
+        newGameState.turnDarts = [];
+    }
     return newGameState;
 }
 
@@ -109,6 +114,10 @@ let handleEndTurn = (newGameState: GameState, playerAction: PlayerAction) => {
         newGameState.isTurnEnd
     );
 
+    if (newGameState.isTurnEnd || newGameState.isBust) {
+        newGameState.turnDarts = [];
+    }
+    
     return newGameState;
 };
 
@@ -221,9 +230,23 @@ let setActivePlayer = (players: Array<Player>, activePlayer: ActivePlayer, isTur
         let nextIndex = nextPlayerIndex(players, activePlayer);
         let nextId = players[nextIndex].id;
         let nextActivePlayer: ActivePlayer = {
-            id: nextId,
-            index: nextIndex
+            userId: nextId,
+            index: nextIndex,
         };
         return nextActivePlayer;
     }
 };
+
+// let setTurnScore = (players: Array<Player>, activePlayer: ActivePlayer, isTurnEnd: boolean, turnScore: number): number => {
+//     if (!isTurnEnd) {
+//         return activePlayer;
+//     } else {
+//         let nextIndex = nextPlayerIndex(players, activePlayer);
+//         let nextId = players[nextIndex].id;
+//         let nextActivePlayer: ActivePlayer = {
+//             userId: nextId,
+//             index: nextIndex,
+//         };
+//         return nextActivePlayer;
+//     }
+//}
