@@ -141,7 +141,7 @@ export default class GameController extends Component<GameControllerProps, Model
             let newGameState = zeroOnePlayerAction(this.state, playerAction);
             this.setState({ ...newGameState }, () => {
                 if (this.state.isTransitioning) {
-                    let turnScore = this.state?.players[this.state?.activePlayer?.index]?.score;
+                    let turnScore = this.state.players[this.state.activePlayer.index].score;
                     setTimeout(() => {
                         this.setState({ isTransitioning: false, turnScore: turnScore ?? this.state.turnScore })
                     }, 3000);
