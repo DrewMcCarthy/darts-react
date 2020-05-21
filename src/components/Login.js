@@ -77,7 +77,7 @@ export default class Login extends Component {
         else {
             return (
                 <div className="login-container">
-                    <div className="login-controls">
+                    <form className="login-controls">
                         <input
                             className="login-input"
                             type="email"
@@ -93,10 +93,10 @@ export default class Login extends Component {
                         <button className="login-button" onClick={this.authenticate}>
                             Login
                         </button>
-                        <button className="login-button" onClick={() => this.setState({ isRegistering: true })}>
+                        <button type="submit" className="login-button" onSubmit={() => this.setState({ isRegistering: true })}>
                             Register
                         </button>
-                    </div>
+                    </form>
                 </div>
             );
         }

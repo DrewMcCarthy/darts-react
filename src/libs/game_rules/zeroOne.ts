@@ -6,7 +6,7 @@
 // handle throw dart action
 // if local then send action to server
 
-import { GameState, PlayerAction, PlayerActionSource, PlayerActionType, Dart, Player, ActivePlayer } from "../../models/gameModels";
+import { GameState, PlayerAction, PlayerActionSource, PlayerActionType, Dart, Player, ActivePlayer, GameOptions, InOutSetting } from "../../models/gameModels";
 
 export let zeroOnePlayerAction = (gameState: GameState, playerAction: PlayerAction): GameState => {
     let newGameState: GameState = {...gameState};
@@ -53,8 +53,8 @@ let handleThrowDart = (newGameState: GameState, playerAction: PlayerAction): Gam
     // let tempScore = newGameState.turnScore - playerAction.dart.value;
     newGameState.turnScore = newGameState.turnScore - playerAction.dart.value;
     // newGameState.turnScore = setTurnScore(newGameState.players, newGameState.activePlayer, newGameState.isTurnEnd, newGameState.turnScore);
-    newGameState.isBust = setBust(newGameState.turnScore);
-    newGameState.isWinner = setWinner(newGameState.turnScore);
+    newGameState.isWinner = setWinner(newGameState.turnScore, newGameState.gameOptions, playerAction.dart);
+    newGameState.isBust = setBust(newGameState.turnScore, newGameState.gameOptions, playerAction.dart);
     newGameState.isTurnEnd = setTurnEnd(newGameState.turnDarts, newGameState.isBust);
     newGameState.isTransitioning = setTransitioning(
         newGameState.isBust, 
@@ -138,12 +138,30 @@ let setDartValue = (dart: Dart): Dart => {
     return newDart;
 }
 
-let setBust = (turnScore: number): boolean => {
-    return turnScore < 0 ? true : false;
-}
+let setBust = (turnScore: number, gameOptions: GameOptions | null, dart: Dart): boolean => {
+    if (turnScore < 0) return true;
 
-let setWinner = (turnScore: number): boolean => {
-    return turnScore === 0 ? true : false;
+    // Using the enum values greater than OpenOpen to determine double out
+    // TODO: need to improve this
+    if (gameOptions!.gameSetting!.id > InOutSetting.OpenOpen) {
+        if (turnScore === 1) return true;
+        if (turnScore === 0 && dart.multiplier !== 2) return true;
+    }
+    return turnScore < 0 ? true : false;
+};
+
+let setWinner = (turnScore: number, gameOptions: GameOptions | null, dart: Dart): boolean => {
+    // Using the enum values greater than OpenOpen to determine double out
+    // TODO: need to improve this
+    if (gameOptions!.gameSetting!.id > InOutSetting.OpenOpen) {
+        if (dart.multiplier === 2) {
+            return turnScore === 0 ? true : false;
+        } else {
+            return false;
+        }
+    } else {
+        return turnScore === 0 ? true : false;
+    }
 }
 
 let setTurnEnd = (turnDarts: Array<Dart> = [], forceTurnEnd: boolean = false): boolean => {
@@ -170,15 +188,15 @@ let setTransitionLabel = (players: Array<Player>, activePlayer: ActivePlayer, is
     let nextPlayerName = players[nextIndex].name;
     let transitionLabel: string = "";
 
+    // TurnEnd needs to be last
     if (isBust) {
         transitionLabel = `${playerName} Busted!
         ${nextPlayerName} Is Up Next`;
+    } else if (isWinner) {
+        transitionLabel = `${playerName} Wins!`;
     } else if (isTurnEnd) {
         transitionLabel = `End of ${playerName}'s Turn
         ${nextPlayerName} Is Up Next`;
-    }
-    else if (isWinner) {
-        transitionLabel = `${playerName} Wins!`;
     }
 
     return transitionLabel;

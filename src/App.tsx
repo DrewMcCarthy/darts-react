@@ -68,6 +68,8 @@ export default class App extends Component<any, AppState> {
 
   handleJoinGame(gameId: number) {
     this.setState({ gameId });
+    // load gameOptions
+    
     this.handleGameStatus(Models.GameStatuses.Joined);
     this.handleSetScreen(Models.GameScreens.Game);
   }

@@ -52,7 +52,8 @@ export default class Menu extends Component<MenuProps, MenuState> {
                 }
             } catch (error) {
                 console.log(error);
-                throw error;
+                this.appSetScreen(Models.GameScreens.Login);
+                //throw error;
             }
         }
     }

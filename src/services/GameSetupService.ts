@@ -45,6 +45,29 @@ export default class GameSetupService {
                     this.gameState.activePlayer = { index: 0, userId: creator.id };
                     this.gameState.turnScore = gameInfo.startScore;
                     this.gameState.isWaitingForPlayers = false;
+                    
+                    this.gameState.gameOptions = {
+                        gameType: {
+                            id: 0,
+                            name: ''
+                        },
+                        gameSetting: {
+                            id: 0,
+                            name: '',
+                            gameTypeId: 0,
+                            category: ''
+                        },
+                        gameVariation: {
+                            id: 0,
+                            name: '',
+                            gameTypeId: 0,
+                            startScore: 0
+                        }
+                    };
+
+                    this.gameState.gameOptions.gameSetting = gameInfo.gameSetting as Models.GameSetting;
+                    this.gameState.gameOptions.gameType = gameInfo.gameType as Models.GameType;
+                    this.gameState.gameOptions.gameVariation = gameInfo.gameVariation as Models.GameVariation;
                 }
             } catch (error) {
                 alert(error);

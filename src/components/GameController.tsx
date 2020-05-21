@@ -110,6 +110,7 @@ export default class GameController extends Component<GameControllerProps, Model
         let data = {
             gameTypeId: this.state.gameOptions?.gameVariation?.gameTypeId,
             gameVariationId: this.state.gameOptions?.gameVariation?.id,
+            gameSettingId: this.state.gameOptions?.gameSetting?.id,
             createdByUserId: this.user.id,
             status: "Lobby",
         };
@@ -315,6 +316,7 @@ export default class GameController extends Component<GameControllerProps, Model
 
                         <EndTurnButton
                             user={this.user}
+                            players={this.state.players}
                             handlePlayerAction={(playerAction: Models.PlayerAction) =>
                                 this.handlePlayerAction(playerAction)
                             }></EndTurnButton>
